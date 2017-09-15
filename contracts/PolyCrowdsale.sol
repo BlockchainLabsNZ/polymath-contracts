@@ -4,7 +4,6 @@ import "./PolyToken.sol";
 import "./TokenHolder.sol";
 import "./Ownable.sol";
 import "./SafeMath.sol";
-import './VestingTrustee.sol';
 
 /*
  * @title Crowdsale
@@ -23,7 +22,7 @@ contract PolymathCrowdsale is Ownable, TokenHolder {
     uint256 public constant TOKEN_UNIT = 10 ** 18;
 
 		// Maximum tokens offered in the sale.
-    uint256 public constant MAX_TOKENS_SOLD = 150000000 * TOKEN_UNIT;
+    uint256 public constant MAX_TOKENS_SOLD = 250000000 * TOKEN_UNIT;
 
 		// Sale start and end timestamps.
 		uint256 public constant SALE_DURATION = 14 days;
@@ -46,6 +45,7 @@ contract PolymathCrowdsale is Ownable, TokenHolder {
     address public multisigAddress;
     address public foundersAddress;
 		address public reserveAddress;
+    address public advisorsAddress;
 
     // Participants (completed KYC requirements)
     mapping (address => bool) public participant;
@@ -55,30 +55,31 @@ contract PolymathCrowdsale is Ownable, TokenHolder {
 
     // Pre-sale (15%) + early contributors (2.5%) allocations
     mapping (address => uint256) public tokenAllocations;
-    uint256 constant MAX_TOKENS_ALLOCATED = 175000000 * TOKEN_UNIT;
+    uint256 constant MAX_TOKENS_ALLOCATED = 275000000 * TOKEN_UNIT;
     uint256 public allocatedTokens = 0;
 
-		// Vesting information for special addresses:
-    struct TokenGrant {
-      uint256 value;
-      uint256 startOffset;
-      uint256 cliffOffset;
-      uint256 endOffset;
-      uint256 installmentLength;
-      uint8 percentVested;
-    }
+    // Founders Allocation
+    uint256 constant FOUNDER_ALLOCATION = 150000000 * TOKEN_UNIT;
+
+    // Reserve Allocation
+    uint256 constant RESERVE_ALLOCATION = 300000000 * TOKEN_UNIT;
+
+    // Advisor Allocation
+    uint256 constant ADVISOR_ALLOCATION = 25000000 * TOKEN_UNIT;
 
     event LogTokensMinted(address indexed recipient, uint256 tokens);
 
-    function PolymathCrowdsale(address _multisigAddress, address _foundersAddress, address _reserveAddress, uint256 _startTime) {
+    function PolymathCrowdsale(address _multisigAddress, address _foundersAddress, address _reserveAddress, address _advisorsAddress, uint256 _startTime) {
       assert(address(_multisigAddress) != 0x0);
       assert(address(_foundersAddress) != 0x0);
       assert(address(_reserveAddress) != 0x0);
+      assert(address(_advisorsAddress) != 0x0);
 			require(_startTime > now);
 
       multisigAddress = _multisigAddress;
       foundersAddress = _foundersAddress;
 			reserveAddress = _reserveAddress;
+			advisorsAddress = _advisorsAddress;
 			startTime = _startTime;
 			endTime = _startTime + SALE_DURATION;
 
@@ -143,6 +144,10 @@ contract PolymathCrowdsale is Ownable, TokenHolder {
         allocatedTokens = allocatedTokens.add(_amounts[i]);
         tokenAllocations[_participants[i]] = _amounts[i];
       }
+      // Other Allocations
+      allocatedTokens[foundersAddress] = FOUNDER_ALLOCATION;
+      allocatedTokens[reserveAddress] = RESERVE_ALLOCATION;
+      allocatedTokens[advisorsAddress] = ADVISOR_ALLOCATION;
     }
 
     // Allow early contributors to claim their allocations
