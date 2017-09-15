@@ -1,0 +1,138 @@
+pragma solidity ^0.4.15;
+
+import "./PolyToken.sol";
+import "./TokenHolder.sol";
+import "./Ownable.sol";
+import "./SafeMath.sol";
+
+/*
+ * @title Crowdsale
+ * @dev Contract to manage the Polymath crowdsale
+ * @dev Using assert over assert within the contract in order to generate error opscodes (0xfe), that will properly show up in etherscan
+ * @dev The assert error opscode (0xfd) will show up in etherscan after the metropolis release
+ * @dev see: https://ethereum.stackexchange.com/a/24185
+ */
+contract PolymathCrowdsale is Ownable, TokenHolder {
+    using SafeMath for uint256;
+
+		// POLY token contract
+		PolyToken public poly;
+
+    // Same as token decimals
+    uint256 public constant TOKEN_UNIT = 10 ** 18;
+
+		// Maximum tokens offered in the sale.
+    uint256 public constant MAX_TOKENS_SOLD = 150000000 * TOKEN_UNIT;
+
+		// Sale start and end timestamps.
+		uint256 public constant SALE_DURATION = 14 days;
+    uint256 public startTime;
+    uint256 public endTime;
+
+		// Amount of tokens sold until now in the sale.
+    uint256 public tokensSold = 0;
+
+    // Amount of POLY in circulation
+		uint256 public circulatingSupply = 0;
+
+    // Halt the crowdsale
+    bool public haltSale = false;
+
+		// Early investor bonuses
+    uint256 public currentRate;
+    uint256 constant public DAY1_RATE = 1200 * TOKEN_UNIT;
+    uint256 constant public DAY2_RATE = 1100 * TOKEN_UNIT;
+    uint256 constant public REGULAR_RATE = 1000 * TOKEN_UNIT;
+
+		// Beneficiary addresses
+    address public foundersAddress;
+		address public reserveAddress;
+
+    // Participants (completed KYC requirements)
+    mapping (address => bool) public participant;
+
+    // Participant contributions
+    mapping (address => uint256) public participantContribution;
+
+		// Vesting information for special addresses:
+    struct TokenGrant {
+      uint256 value;
+      uint256 startOffset;
+      uint256 cliffOffset;
+      uint256 endOffset;
+      uint256 installmentLength;
+      uint8 percentVested;
+    }
+
+    event LogTokensMinted(address indexed investor, uint256 amount, uint256 tokens);
+
+    function PolymathCrowdsale(address _foundersAddress, address _reserveAddress, uint256 _startTime) {
+      assert(address(_foundersAddress) != 0x0);
+      assert(address(_reserveAddress) != 0x0);
+			require(_startTime > now);
+
+      foundersAddress = _foundersAddress;
+			reserveAddress = _reserveAddress;
+			startTime = _startTime;
+			endTime = _startTime + SALE_DURATION;
+
+      poly = new PolyToken();
+    }
+
+    function() payable external {
+
+      require( tx.gasprice <= 50000000000 wei );
+      require( !haltSale );
+      require( !saleEnded() );
+      require( participant[msg.sender] );
+
+      // Determine amount of tokens to transfer
+      uint256 rate = 0;
+      if (now <= startTime + 1 days) {
+        rate = DAY1_RATE;
+      } else if (now <= startTime + 2 days) {
+        rate = DAY2_RATE;
+      } else {
+        rate = REGULAR_RATE;
+      }
+
+      // Check that the amount purchased doesn't exceed the amount left
+      uint256 tokensLeftInSale = MAX_TOKENS_SOLD.sub(tokensSold);
+      uint256 tokensParticipantWants = msg.value.mul(rate);
+      uint256 tokens = SafeMath.min256(tokensLeftInSale, tokensParticipantWants);
+      uint256 weiContributed = tokens.div(rate);
+
+      // Update the circulating supply and number of tokens sold
+      circulatingSupply = circulatingSupply.add(tokens);
+      tokensSold = tokensSold.add(tokens);
+      participantContribution[msg.sender] = participantContribution[msg.sender].add(msg.value);
+
+      // Mint Tokens
+      poly.mint(msg.sender, tokens);
+
+      // Partial Refund if full amount wasn't available
+      uint256 refund = msg.value.sub(weiContributed);
+      if (refund > 0) {
+        msg.sender.transfer(refund);
+      }
+
+      // Log the event
+      LogTokensMinted(msg.sender, msg.value, tokens);
+    }
+
+    // Add the list of KYC verified participant addresses
+    function addParticipants(address[] _participants) private onlyOwner {
+      for (uint i = 0; i < _participants.length; i++) {
+        participant[_participants[i]] = true;
+      }
+    }
+
+    // Halt or unhalt the crowdsale during an emergency
+    function setHaltState(bool halt) onlyOwner external {
+      haltSale = halt;
+    }
+
+    function saleEnded() private constant returns (bool) {
+      return tokensSold >= MAX_TOKENS_SOLD || now >= endTime;
+    }
+}
