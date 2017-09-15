@@ -4,6 +4,7 @@ import "./PolyToken.sol";
 import "./TokenHolder.sol";
 import "./Ownable.sol";
 import "./SafeMath.sol";
+import './VestingTrustee.sol';
 
 /*
  * @title Crowdsale
@@ -32,9 +33,6 @@ contract PolymathCrowdsale is Ownable, TokenHolder {
 		// Amount of tokens sold until now in the sale.
     uint256 public tokensSold = 0;
 
-    // Amount of POLY in circulation
-		uint256 public circulatingSupply = 0;
-
     // Halt the crowdsale
     bool public haltSale = false;
 
@@ -45,6 +43,7 @@ contract PolymathCrowdsale is Ownable, TokenHolder {
     uint256 constant public REGULAR_RATE = 1000 * TOKEN_UNIT;
 
 		// Beneficiary addresses
+    address public multisigAddress;
     address public foundersAddress;
 		address public reserveAddress;
 
@@ -53,6 +52,11 @@ contract PolymathCrowdsale is Ownable, TokenHolder {
 
     // Participant contributions
     mapping (address => uint256) public participantContribution;
+
+    // Pre-sale (15%) + early contributors (2.5%) allocations
+    mapping (address => uint256) public tokenAllocations;
+    uint256 constant MAX_TOKENS_ALLOCATED = 175000000 * TOKEN_UNIT;
+    uint256 public allocatedTokens = 0;
 
 		// Vesting information for special addresses:
     struct TokenGrant {
@@ -64,13 +68,15 @@ contract PolymathCrowdsale is Ownable, TokenHolder {
       uint8 percentVested;
     }
 
-    event LogTokensMinted(address indexed investor, uint256 amount, uint256 tokens);
+    event LogTokensMinted(address indexed recipient, uint256 tokens);
 
-    function PolymathCrowdsale(address _foundersAddress, address _reserveAddress, uint256 _startTime) {
+    function PolymathCrowdsale(address _multisigAddress, address _foundersAddress, address _reserveAddress, uint256 _startTime) {
+      assert(address(_multisigAddress) != 0x0);
       assert(address(_foundersAddress) != 0x0);
       assert(address(_reserveAddress) != 0x0);
 			require(_startTime > now);
 
+      multisigAddress = _multisigAddress;
       foundersAddress = _foundersAddress;
 			reserveAddress = _reserveAddress;
 			startTime = _startTime;
@@ -102,10 +108,12 @@ contract PolymathCrowdsale is Ownable, TokenHolder {
       uint256 tokens = SafeMath.min256(tokensLeftInSale, tokensParticipantWants);
       uint256 weiContributed = tokens.div(rate);
 
-      // Update the circulating supply and number of tokens sold
-      circulatingSupply = circulatingSupply.add(tokens);
+      // Update the number of tokens sold
       tokensSold = tokensSold.add(tokens);
-      participantContribution[msg.sender] = participantContribution[msg.sender].add(msg.value);
+      participantContribution[msg.sender] = participantContribution[msg.sender].add(weiContributed);
+
+      // Send payment to beneficiary multisig wallet
+      multisigAddress.transfer(weiContributed);
 
       // Mint Tokens
       poly.mint(msg.sender, tokens);
@@ -117,14 +125,33 @@ contract PolymathCrowdsale is Ownable, TokenHolder {
       }
 
       // Log the event
-      LogTokensMinted(msg.sender, msg.value, tokens);
+      LogTokensMinted(msg.sender, tokens);
     }
 
-    // Add the list of KYC verified participant addresses
+    // Upload list of KYC verified participant addresses
     function addParticipants(address[] _participants) private onlyOwner {
       for (uint i = 0; i < _participants.length; i++) {
         participant[_participants[i]] = true;
       }
+    }
+
+    // Upload list of allocations for presale investors and early contributors
+    function addAllocations(address[] _participants, uint256 _amounts) private onlyOwner {
+      for (uint i = 0; i < _participants.length; i++) {
+        // Ensure no excess tokens are allocated
+        require( allocatedTokens + _amounts[i] <= MAX_TOKENS_ALLOCATED);
+        allocatedTokens = allocatedTokens.add(_amounts[i]);
+        tokenAllocations[_participants[i]] = _amounts[i];
+      }
+    }
+
+    // Allow early contributors to claim their allocations
+    function claimAllocation() {
+      require( tokenAllocations[msg.sender] > 0 );
+      uint256 tokens = tokenAllocations[msg.sender];
+      tokenAllocations[msg.sender] = 0;
+      poly.mint(msg.sender, tokens);
+      LogTokensMinted(msg.sender, tokens);
     }
 
     // Halt or unhalt the crowdsale during an emergency
