@@ -137,7 +137,7 @@ contract PolymathCrowdsale is Ownable, TokenHolder {
     }
 
     // Upload list of allocations for presale investors and early contributors
-    function addAllocations(address[] _participants, uint256 _amounts) private onlyOwner {
+    function addAllocations(address[] _participants, uint256[] _amounts) private onlyOwner {
       for (uint i = 0; i < _participants.length; i++) {
         // Ensure no excess tokens are allocated
         require( allocatedTokens + _amounts[i] <= MAX_TOKENS_ALLOCATED);
@@ -145,9 +145,9 @@ contract PolymathCrowdsale is Ownable, TokenHolder {
         tokenAllocations[_participants[i]] = _amounts[i];
       }
       // Other Allocations
-      allocatedTokens[foundersAddress] = FOUNDER_ALLOCATION;
-      allocatedTokens[reserveAddress] = RESERVE_ALLOCATION;
-      allocatedTokens[advisorsAddress] = ADVISOR_ALLOCATION;
+      tokenAllocations[foundersAddress] = FOUNDER_ALLOCATION;
+      tokenAllocations[reserveAddress] = RESERVE_ALLOCATION;
+      tokenAllocations[advisorsAddress] = ADVISOR_ALLOCATION;
     }
 
     // Allow early contributors to claim their allocations
