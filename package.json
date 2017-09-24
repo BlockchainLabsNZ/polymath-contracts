@@ -1,14 +1,27 @@
 {
-  "name": "polymath-crowdsale",
-  "version": "0.0.1",
-  "description": "Crowdsale smart contracts for the Polymath Securities Platform network token",
+  "name": "PolyMathToken",
+  "version": "1.0.0",
+  "description": "ICO contracts by BlockChainLabs NZ",
   "main": "truffle.js",
-  "directories": {
-    "test": "test"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PolymathNetwork/Crowdsale"
   },
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "zeppelin",
+    "smartcontract"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "yarn truffle test"
   },
-  "author": "Sukhveer Sanghera",
-  "license": "MIT"
+  "author": "BlockChainLabs NZ <info@blockchainlabs.nz>",
+  "license": "ISC",
+  "devDependencies": {
+    "lite-server": "^2.3.0"
+  },
+  "dependencies": {
+    "zeppelin-solidity": "^1.2.0"
+  }
 }
