@@ -1,9 +1,9 @@
 pragma solidity ^0.4.13;
 
-import './zeppelin-solidity/ownership/Ownable.sol';
-import './zeppelin-solidity/math/SafeMath.sol';
-import './zeppelin-solidity/crowdsale/RefundVault.sol';
-import './zeppelin-solidity/token/StandardToken.sol';
+import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+import 'zeppelin-solidity/contracts/crowdsale/RefundVault.sol';
+import 'zeppelin-solidity/contracts/token/StandardToken.sol';
 
 /**
  * @title PolyMathTokenOffering
