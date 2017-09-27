@@ -1,38 +1,35 @@
 'use strict';
-var POLYToken = artifacts.require('PolyMathToken.sol');
+let POLYToken = artifacts.require('PolyMathToken.sol');
+const BigNumber = require("bignumber.js");
+const assertFail = require("./helpers/assertFail");
 
-contract('POLYToken', function(accounts) {
-  it('should have 300 million totalSupply', function() {
-    POLYToken.deployed().then(function(instance) {
-      return instance.totalSupply.call();
-    }).then(function(x) {
-      assert.equal(x.valueOf(), 1000000000000000000000000000, "totalSupply was incorrect");
-    })
+let polyToken;
+
+contract('polyToken', function(accounts) {
+  beforeEach(async () => {
+    polyToken = await POLYToken.new(
+      100000000000000000,
+      0,
+      100,
+      accounts[0],
+      { from: accounts[0] }
+    );
   });
 
-  it('should have correct name', function() {
-    POLYToken.deployed().then(function(instance) {
-      return instance.name.call();
-    }).then(function(x) {
-      assert.equal(x.valueOf(), "PolyMathToken", "name was incorrect");
-    })
+  it('should have 300 million totalSupply', async () => {
+    let totalSupply = await polyToken.totalSupply.call();
+    assert.equal(totalSupply, 1000000000000000000000000000, "totalSupply was incorrect");
   });
 
-  it('should have correct symbol', function() {
-    POLYToken.deployed().then(function(instance) {
-      return instance.symbol.call();
-    }).then(function(x) {
-      assert.equal(x.valueOf(), "POLY", "symbol was incorrect");
-    })
+  it('should have correct name', async () => {;
+    assert.equal(await polyToken.name.call(), "PolyMathToken", "name was incorrect");
   });
 
-  it('should have correct number of decimals', function() {
-    POLYToken.deployed().then(function(instance) {
-      return instance.decimals.call();
-    }).then(function(x) {
-      assert.equal(x.valueOf(), 18, "decimals was incorrect");
-    })
+  it('should have correct symbol', async () => {
+    assert.equal(await polyToken.symbol.call(), "POLY", "symbol was incorrect");
   });
 
-
+  it('should have correct number of decimals', async () => {
+      assert.equal(polyToken.decimals.call(), 18, "decimals was incorrect");
+  });
 });
