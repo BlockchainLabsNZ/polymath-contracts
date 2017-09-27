@@ -1,6 +1,6 @@
 pragma solidity ^0.4.13;
 
-import './zeppelin-solidity/token/PausableToken.sol';
+import 'zeppelin-solidity/contracts/token/PausableToken.sol';
 
 contract PolyMathToken is PausableToken {
 
