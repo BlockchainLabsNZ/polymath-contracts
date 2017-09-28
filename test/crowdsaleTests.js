@@ -69,7 +69,7 @@ contract('TokenOffering', async function ([miner, owner, investor, wallet]) {
 
       const value = web3.toWei(1, 'ether');
       await tokenOfferingDeployed.sendTransaction({ from: investor, value, gas: '200000' });
-      balance = await tokenDeployed.balanceOf(investor);
+      balance = await tokenOfferingDeployed.allocations(investor);
       assert.isTrue(balance.toNumber(10) > 0, 'balanceOf is 0 for investor who just bought tokens');
     })
 
