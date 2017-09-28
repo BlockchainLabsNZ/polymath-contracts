@@ -17,7 +17,7 @@ contract PolyMathTokenOffering is Ownable {
   using SafeMath for uint256;
 
   // Token allocations
-  mapping (address => uint256) allocations;
+  mapping (address => uint256) public allocations;
 
   // Whitelisted investors
   mapping (address => bool) public whitelist;
