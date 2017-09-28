@@ -15,6 +15,7 @@
   ],
   "scripts": {
     "test": "bash scripts/test.sh",
+    "migrate": "yarn truffle migrate",
     "coverage": "bash scripts/coverage.sh"
   },
   "author": "BlockChainLabs NZ <info@blockchainlabs.nz>",

@@ -19,6 +19,9 @@ contract PolyMathTokenOffering is Ownable {
   // Token allocations
   mapping (address => uint256) allocations;
 
+  // Whitelisted investors
+  mapping (address => bool) public whitelist;
+
   // manual early close flag
   bool public isFinalized = false;
 
@@ -70,8 +73,7 @@ contract PolyMathTokenOffering is Ownable {
   event Finalized();
 
   function PolyMathTokenOffering(address _token, uint256 _startTime, uint256 _endTime, uint256 _rate, uint256 _cap, uint256 _goal, address _wallet) {
-
-    require(_startTime >= now);
+    require(_startTime >= getBlockTimestamp());
     require(_endTime >= _startTime);
     require(_rate > 0);
     require(_cap > 0);
@@ -90,7 +92,7 @@ contract PolyMathTokenOffering is Ownable {
   }
 
   // fallback function can be used to buy tokens
-  function () payable {
+  function() payable {
     buyTokens(msg.sender);
   }
 
@@ -104,29 +106,42 @@ contract PolyMathTokenOffering is Ownable {
     uint256 bonusTokens;
     uint256 bonusRate;
 
-    if (now > startTime && now < DAY1) {
+    if (getBlockTimestamp() > startTime && getBlockTimestamp() < DAY1) {
       bonusRate =  1200;
       // bonusRate =  0.0000000000000012;
-    } else if (now > DAY1 && now < DAY2) {
+    } else if (getBlockTimestamp() > DAY1 && getBlockTimestamp() < DAY2) {
       bonusRate =  1100;
-    } else if (now > DAY2 && now < DAY3) {
+    } else if (getBlockTimestamp() > DAY2 && getBlockTimestamp() < DAY3) {
       bonusRate =  1000;
     }
     bonusTokens = weiAmount.mul(bonusRate);
     return bonusTokens;
   }
 
+  /// @notice interface for founders to whitelist investors
+  /// @param _addresses array of investors
+  /// @param _status enable or disable
+  function whitelistAddresses(address[] _addresses, bool _status) public onlyOwner {
+    for (uint256 i = 0; i < _addresses.length; i++) {
+        address investorAddress = _addresses[i];
+        if (whitelist[investorAddress] == _status) {
+          continue;
+        }
+        whitelist[investorAddress] = _status;
+    }
+   }
+
   // low level token purchase function
   // caution: tokens must be redeemed by beneficiary address
   function buyTokens(address beneficiary) payable {
+    require(whitelist[beneficiary]);
     require(beneficiary != 0x0);
     require(validPurchase());
-
     // calculate token amount to be purchased
     uint256 weiAmount = msg.value;
     uint256 tokens = weiAmount.mul(rate);
     uint256 bonusTokens = calculateBonus(weiAmount);
-    tokens = tokens + bonusTokens;
+    tokens = tokens.add(bonusTokens);
 
     // update state
     weiRaised = weiRaised.add(weiAmount);
@@ -182,7 +197,7 @@ contract PolyMathTokenOffering is Ownable {
   // @return true if the transaction can buy tokens
   function validPurchase() internal constant returns (bool) {
     bool withinCap = weiRaised.add(msg.value) <= cap;
-    bool withinPeriod = now >= startTime && now <= endTime;
+    bool withinPeriod = getBlockTimestamp() >= startTime && getBlockTimestamp() <= endTime;
     bool nonZeroPurchase = msg.value != 0;
     return withinPeriod && nonZeroPurchase && withinCap;
   }
@@ -190,8 +205,12 @@ contract PolyMathTokenOffering is Ownable {
   // @return true if crowdsale event has ended or cap reached
   function hasEnded() public constant returns (bool) {
     bool capReached = weiRaised >= cap;
-    bool passedEndTime = now > endTime;
+    bool passedEndTime = getBlockTimestamp() > endTime;
     return passedEndTime || capReached;
+  }
+
+  function getBlockTimestamp() internal constant returns (uint256) {
+    return block.timestamp;
   }
 
   // if crowdsale is unsuccessful, contributors can claim refunds here
@@ -229,5 +248,4 @@ contract PolyMathTokenOffering is Ownable {
     }
 
   }
-
 }
