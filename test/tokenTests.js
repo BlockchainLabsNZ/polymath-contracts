@@ -201,5 +201,5 @@ contract('polyToken', async function(accounts) {
       (await polyToken.balanceOf.call(accounts[0])).toNumber(),
       amount - 60
     );
-  });
+  })
 });
