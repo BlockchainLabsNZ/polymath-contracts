@@ -19,7 +19,7 @@ contract PolyMathTimelock {
   uint256 vestingAmount = 1000000000000000000;
 
   function PolyMathTimelock(PausableToken _token, uint64 _releaseTime) {
-    require(_releaseTime > now);
+    require(_releaseTime > getBlockTimestamp());
     token = _token;
     releaseTime = _releaseTime;
 
@@ -28,7 +28,7 @@ contract PolyMathTimelock {
   }
 
   function release() {
-    require(now >= releaseTime);
+    require(getBlockTimestamp() >= releaseTime);
 
     uint256 entitled = allocations[msg.sender];
     allocations[msg.sender] = 0;
@@ -38,4 +38,8 @@ contract PolyMathTimelock {
 
     require(token.transfer(msg.sender, entitled));
   }
+
+   function getBlockTimestamp() internal constant returns (uint256) {
+     return block.timestamp;
+   }
 }
