@@ -18,8 +18,5 @@ matrix:
     - env: SOLIDITY_COVERAGE=true
 script:
   - npm test
-before_script:
-  - testrpc > /dev/null &
-  - sleep 5
 after_script:
-  - npm run coverage && cat coverage/lcov.info | coveralls
+  - ./node_modules/.bin/solidity-coverage && cat coverage/lcov.info | ./node_modules/.bin/coveralls
