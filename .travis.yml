@@ -1,18 +1,25 @@
 dist: trusty
 sudo: required
-group: beta
 language: node_js
 node_js:
   - "8"
 cache:
   yarn: true
 env:
+  -
   - SOLIDITY_COVERAGE=true
+install:
+  - npm install -g truffle
+  - npm install -g ethereumjs-testrpc
+  - npm install
 matrix:
   fast_finish: true
   allow_failures:
     - env: SOLIDITY_COVERAGE=true
 script:
   - npm test
+before_script:
+  - testrpc > /dev/null &
+  - sleep 5
 after_script:
   - npm run coverage && cat coverage/lcov.info | coveralls
