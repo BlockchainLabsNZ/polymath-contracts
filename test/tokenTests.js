@@ -13,7 +13,7 @@ contract('polyToken', async function(accounts) {
   });
 
   it('the fallback function should revert unknown functions', async () => {
-    assertFail(async () => { await web3.eth.sendTransaction({
+    await assertFail(async () => { await web3.eth.sendTransaction({
         'from': accounts[0],
         'to': polyToken.address
       })
@@ -59,7 +59,7 @@ contract('polyToken', async function(accounts) {
   });
 
   it("transfers: should fail when trying to transfer 100000000000000001 to accounts[1] with accounts[0] having 100000000000000000", async () => {
-    assertFail(async () => {
+    await assertFail(async () => {
       await polyToken.transfer(accounts[1], amount + 10, {
         from: accounts[0]
       });
@@ -166,7 +166,7 @@ contract('polyToken', async function(accounts) {
       (await polyToken.balanceOf.call(accounts[0])).toNumber(),
       amount - 50
     );
-    assertFail(async () => {
+    await assertFail(async () => {
       await polyToken.transferFrom.call(accounts[0], accounts[2], 60, {
         from: accounts[1]
       });
@@ -183,7 +183,7 @@ contract('polyToken', async function(accounts) {
   });
 
   it("approvals: attempt withdrawal from account with no allowance (should fail)", async () => {
-    assertFail(async () => {
+    await assertFail(async () => {
       await polyToken.transferFrom.call(accounts[0], accounts[2], 60, {
         from: accounts[1]
       });
@@ -200,7 +200,7 @@ contract('polyToken', async function(accounts) {
       from: accounts[1]
     });
     await polyToken.approve(accounts[1], 0, { from: accounts[0] });
-    assertFail(async () => {
+    await assertFail(async () => {
       await polyToken.transferFrom.call(accounts[0], accounts[2], 10, {
         from: accounts[1]
       });

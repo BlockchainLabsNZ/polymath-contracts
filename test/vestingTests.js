@@ -6,11 +6,12 @@ const assertFail = require('./helpers/assertFail');
 import { latestTime, duration } from './helpers/latestTime';
 
 let polyVestingDeployed, tokenOfferingDeployed, tokenDeployed;
-const startTime = latestTime() + duration.seconds(1);
-const endTime = startTime + duration.weeks(1);
+let startTime, endTime;
 
 contract('PolyMathVesting', async function ([miner, owner, investor, wallet]) {
   beforeEach(async function () {
+    startTime  = latestTime() + duration.seconds(1);
+    endTime = startTime + duration.weeks(1);
     tokenDeployed = await POLYToken.new();
     polyVestingDeployed = await POLYVesting.new(tokenDeployed.address, endTime, owner);
     await tokenDeployed.transfer(polyVestingDeployed.address, 1000000000000000000);
@@ -19,7 +20,8 @@ contract('PolyMathVesting', async function ([miner, owner, investor, wallet]) {
 
   it('tokens cannot be released by someone other than the vesting address', async () => {
     await polyVestingDeployed.setBlockTimestamp(endTime + 10);
-    assertFail(await polyVestingDeployed.release.sendTransaction({'from': investor}));
+    await polyVestingDeployed.release.sendTransaction({'from': investor});
+    assert.equal((await tokenDeployed.balanceOf.call(owner)).toNumber(), 0);
   });
 
   it('tokens can be released after vesting date', async () => {
@@ -27,10 +29,13 @@ contract('PolyMathVesting', async function ([miner, owner, investor, wallet]) {
     await polyVestingDeployed.release.sendTransaction({
       'from': owner
     });
-    assert.equal((await tokenDeployed.balanceOf.call(owner)).toNumber(), 10);
+    assert.equal((await tokenDeployed.balanceOf.call(owner)).toNumber(), 1000000000000000000);
   });
 
   it('tokens cannot be released before vesting date', async () => {
-    assertFail(await polyVestingDeployed.release.sendTransaction({'from': owner}));
+    await polyVestingDeployed.setBlockTimestamp(endTime - 10);
+    await assertFail(async () => {
+      await polyVestingDeployed.release.sendTransaction({'from': investor})
+    });
   });
 });
