@@ -20,7 +20,7 @@ contract('polyToken', async function(accounts) {
     });
   });
 
-  it('should have 300 million totalSupply', async () => {
+  it('should have 1 billion totalSupply', async () => {
     let totalSupply = await polyToken.totalSupply.call();
     assert.equal(totalSupply, 1000000000000000000000000000, "totalSupply was incorrect");
   });

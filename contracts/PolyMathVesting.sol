@@ -2,7 +2,7 @@ pragma solidity ^0.4.13;
 
 import 'zeppelin-solidity/contracts/token/PausableToken.sol';
 
-contract PolyMathTimelock {
+contract PolyMathVesting {
 
   // Contract holds ERC20 POLY tokens.
   // Tokens to be deposited for team and advisors.
@@ -18,13 +18,13 @@ contract PolyMathTimelock {
 
   uint256 vestingAmount = 1000000000000000000;
 
-  function PolyMathTimelock(PausableToken _token, uint64 _releaseTime) {
+  function PolyMathVesting(PausableToken _token, uint64 _releaseTime, address _vestingAddress) {
     require(_releaseTime > getBlockTimestamp());
     token = _token;
     releaseTime = _releaseTime;
 
   // Allocated token balances for vesting (18 decimals required)
-    allocations[0x0] = vestingAmount;
+    allocations[_vestingAddress] = vestingAmount;
   }
 
   function release() {
