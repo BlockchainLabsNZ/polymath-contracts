@@ -12,6 +12,14 @@ contract('polyToken', async function(accounts) {
     polyToken = await POLYToken.new();
   });
 
+  it('the fallback function should revert unknown functions', async () => {
+    assertFail(async () => { await web3.eth.sendTransaction({
+        'from': accounts[0],
+        'to': polyToken.address
+      })
+    });
+  });
+
   it('should have 300 million totalSupply', async () => {
     let totalSupply = await polyToken.totalSupply.call();
     assert.equal(totalSupply, 1000000000000000000000000000, "totalSupply was incorrect");
