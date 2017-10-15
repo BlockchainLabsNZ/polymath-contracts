@@ -1,6 +1,7 @@
 
 const POLYToken = artifacts.require("PolyMathToken.sol");
 const POLYTokenOffering = artifacts.require("PolyMathTokenOffering.sol");
+const abiEncoder = require('ethereumjs-abi');
 
 function latestTime() {
   return web3.eth.getBlock('latest').timestamp;
@@ -16,7 +17,7 @@ const duration = {
 
 module.exports = function(deployer, network) {
   
-  const startTime = latestTime() + duration.seconds(1);
+  const startTime = latestTime() + duration.minutes(5);
   const endTime = startTime + duration.weeks(1);
   const rate = new web3.BigNumber(1000);
   const wallet = web3.eth.accounts[0];
@@ -26,6 +27,8 @@ module.exports = function(deployer, network) {
   if(network !== 'development'){
     deployer.deploy(POLYToken).then(async function() {
       await deployer.deploy(POLYTokenOffering, POLYToken.address, startTime, endTime, rate, cap, goal, wallet);
+      const encodedPOLYTokenOffering = abiEncoder.rawEncode(['address', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'address'], [POLYToken.address, startTime.toString(10), endTime.toString(10), rate.toString(10), cap.toString(10), goal.toString(10), wallet]);
+      console.log('encodedPOLYTokenOffering ENCODED: \n', encodedPOLYTokenOffering.toString('hex'));
     });
   }
 };
