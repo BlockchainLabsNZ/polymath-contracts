@@ -1,8 +1,9 @@
 pragma solidity ^0.4.13;
 
 import 'zeppelin-solidity/contracts/token/PausableToken.sol';
+import 'zeppelin-solidity/contracts/token/BurnableToken.sol';
 
-contract PolyMathToken is PausableToken {
+contract PolyMathToken is PausableToken, BurnableToken {
 
   // Token properties.
   string public constant name = 'PolyMathToken';
