@@ -1,5 +1,7 @@
 # Polymath POLY Crowdsale
 
+[![Coverage Status](https://coveralls.io/repos/github/BlockchainLabsNZ/polymath-contracts/badge.svg?branch=testing)](https://coveralls.io/github/BlockchainLabsNZ/polymath-contracts?branch=testing) [![Build Status](https://travis-ci.org/BlockchainLabsNZ/polymath-contracts.svg?branch=master)](https://travis-ci.org/BlockchainLabsNZ/polymath-contracts)
+
 The smart contracts for the [Polymath Network][polymath] token (POLY) crowdsale.
 
 ![Polymath](Polymath.png)
