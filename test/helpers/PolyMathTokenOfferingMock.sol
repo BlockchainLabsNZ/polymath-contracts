@@ -11,9 +11,9 @@ contract PolyMathTokenOfferingMock is PolyMathTokenOffering {
   function getBlockTimestamp() internal constant returns (uint256) {
     return timeStamp;
   }
-  
-  function PolyMathTokenOfferingMock(address _token, uint256 _startTime, uint256 _endTime, uint256 _rate, uint256 _cap, uint256 _goal, address _wallet) 
-    PolyMathTokenOffering(_token, _startTime, _endTime, _rate, _cap, _goal, _wallet)
+
+  function PolyMathTokenOfferingMock(address _token, uint256 _startTime, uint256 _endTime, uint256 _rate, uint256 _cap, address _wallet)
+    PolyMathTokenOffering(_token, _startTime, _endTime, _rate, _cap, _wallet)
   {
   }
 

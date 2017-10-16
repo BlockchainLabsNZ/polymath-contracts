@@ -178,7 +178,7 @@ contract PolyMathTokenOffering is Ownable {
   // send ether to the fund collection wallet
   // override to create custom fund forwarding mechanisms
   function forwardFunds() internal {
-    wallet.send(msg.value);
+    wallet.transfer(msg.value);
   }
 
   // @return true if the transaction can buy tokens
