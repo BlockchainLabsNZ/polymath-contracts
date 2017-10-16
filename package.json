@@ -26,6 +26,7 @@
     "babel-preset-stage-2": "^6.24.1",
     "babel-preset-stage-3": "^6.24.1",
     "babel-register": "^6.26.0",
+    "ethereumjs-abi": "^0.6.4",
     "coveralls": "^2.13.3",
     "lite-server": "^2.3.0",
     "solidity-coverage": "^0.2.4"

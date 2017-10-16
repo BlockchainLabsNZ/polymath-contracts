@@ -14,6 +14,11 @@ module.exports = {
       port: 8555,
       gas: 0xfffffffffff,
       gasPrice: 0x01
-    }
+    },
+    kovan: {
+      host: "localhost",
+      port: 8549,
+      network_id: "*" // Match any network id
+    },
   }
 };
