@@ -2,7 +2,7 @@ pragma solidity ^0.4.13;
 
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import 'zeppelin-solidity/contracts/token/StandardToken.sol';
+import './PolyMathToken.sol';
 
 /**
  * @title PolyMathTokenOffering
@@ -28,7 +28,7 @@ contract PolyMathTokenOffering is Ownable {
   uint256 public cap;
 
   // The token being sold
-  StandardToken public token;
+  PolyMathToken public token;
 
   // start and end timestamps where contributions are allowed (both inclusive)
   uint256 public startTime;
@@ -72,7 +72,7 @@ contract PolyMathTokenOffering is Ownable {
     require(_cap > 0);
     require(_wallet != 0x0);
 
-    token = StandardToken(_token);
+    token = PolyMathToken(_token);
     startTime = _startTime;
     endTime = _endTime;
     rate = _rate;
@@ -88,23 +88,21 @@ contract PolyMathTokenOffering is Ownable {
   // Day 1: 1 ETH = 1,200 POLY
   // Day 2: 1 ETH = 1,100 POLY
   // Day 3: 1 ETH = 1,000 POLY
-  function calculateBonus(uint256 weiAmount) internal returns (uint256) {
+  function calculateBonusRate() internal returns (uint256) {
     uint256 DAY1 = startTime + 24 hours;
     uint256 DAY2 = DAY1 + 24 hours;
     uint256 DAY3 = DAY2 + 24 hours;
-    uint256 bonusTokens;
-    uint256 bonusRate;
+    uint256 bonusRate = 1000;
 
-    if (getBlockTimestamp() > startTime && getBlockTimestamp() < DAY1) {
+    uint256 currentTime = getBlockTimestamp();
+    if (currentTime > startTime && currentTime <= DAY1) {
       bonusRate =  1200;
-      // bonusRate =  0.0000000000000012;
-    } else if (getBlockTimestamp() > DAY1 && getBlockTimestamp() < DAY2) {
+    } else if (currentTime <= DAY2) {
       bonusRate =  1100;
-    } else if (getBlockTimestamp() > DAY2 && getBlockTimestamp() < DAY3) {
+    } else if (currentTime <= DAY3) {
       bonusRate =  1000;
     }
-    bonusTokens = weiAmount.mul(bonusRate);
-    return bonusTokens;
+    return bonusRate;
   }
 
   /// @notice interface for founders to whitelist investors
@@ -128,50 +126,16 @@ contract PolyMathTokenOffering is Ownable {
     require(validPurchase());
     // calculate token amount to be purchased
     uint256 weiAmount = msg.value;
-    uint256 tokens = weiAmount.mul(rate);
-    uint256 bonusTokens = calculateBonus(weiAmount);
-    tokens = tokens.add(bonusTokens);
+    uint256 bonusRate = calculateBonusRate();
+    uint256 tokens = weiAmount.mul(bonusRate).div(1 ether);
 
     // update state
     weiRaised = weiRaised.add(weiAmount);
 
-    // allocate tokens to purchaser
-    allocations[beneficiary] = tokens;
-
-    TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
-
     forwardFunds();
-  }
-
-  // redeem tokens
-  function claimTokens() {
-    require(isFinalized);
-
-    // confirm there are tokens remaining
-    uint256 amount = token.balanceOf(this);
-    require(amount > 0);
-
     // send tokens to purchaser
-    uint256 tokens = allocations[msg.sender];
-    allocations[msg.sender] = 0;
-    require(token.transfer(msg.sender, tokens));
-
-    TokenRedeem(msg.sender, tokens);
-  }
-
-  // redeem tokens (admin fallback)
-  function sendTokens(address beneficiary) onlyOwner {
-    require(isFinalized);
-
-    // confirm there are tokens remaining
-    uint256 amount = token.balanceOf(this);
-    require(amount > 0);
-
-    // send tokens to purchaser
-    uint256 tokens = allocations[beneficiary];
-    allocations[beneficiary] = 0;
-    require(token.transfer(beneficiary, tokens));
-
+    TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
+    token.transfer(beneficiary, tokens);
     TokenRedeem(beneficiary, tokens);
   }
 
@@ -186,7 +150,8 @@ contract PolyMathTokenOffering is Ownable {
     bool withinCap = weiRaised.add(msg.value) <= cap;
     bool withinPeriod = getBlockTimestamp() >= startTime && getBlockTimestamp() <= endTime;
     bool nonZeroPurchase = msg.value != 0;
-    return withinPeriod && nonZeroPurchase && withinCap;
+    bool contractHasTokens = token.balanceOf(this) > 0;
+    return withinPeriod && nonZeroPurchase && withinCap && contractHasTokens;
   }
 
   // @return true if crowdsale event has ended or cap reached
@@ -200,22 +165,19 @@ contract PolyMathTokenOffering is Ownable {
     return block.timestamp;
   }
 
-
   // @dev does not require that crowdsale `hasEnded()` to leave safegaurd
   // in place if ETH rises in price too much during crowdsale.
   // Allows team to close early if cap is exceeded in USD in this event.
   function finalize() onlyOwner {
-  require(!isFinalized);
-
-  Finalized();
-  isFinalized = true;
+    require(!isFinalized);
+    Finalized();
+    isFinalized = true;
   }
 
   function unsoldCleanUp() onlyOwner {
     uint256 amount = token.balanceOf(this);
     if(amount > 0) {
-    require(token.transfer(msg.sender, amount));
+      require(token.transfer(msg.sender, amount));
     }
-
   }
 }
