@@ -1,7 +1,15 @@
 'use strict';
+
 let POLYToken = artifacts.require('PolyMathToken.sol');
 const BigNumber = require("bignumber.js");
 const assertFail = require("./helpers/assertFail");
+
+require('chai')
+  .use(require('chai-as-promised'))
+  .use(require('chai-bignumber')(BigNumber))
+  .should()
+
+const expect = require('chai').expect
 
 let polyToken, watcher;
 
@@ -10,6 +18,48 @@ let initialSupply = new web3.BigNumber(1000 * Math.pow(6, 18));
 contract('polyToken', async function(accounts) {
   beforeEach(async () => {
     polyToken = await POLYToken.new();
+  });
+
+  it('owner should be able to burn tokens', async function () {
+      await polyToken.transfer(accounts[1], 1, {
+        from: accounts[0]
+      });
+      let balance = (await polyToken.balanceOf(accounts[1])).toNumber();
+      balance.should.be.bignumber.equal(1);
+
+      const { logs } = await polyToken.burn(1, { from: accounts[1] });
+
+      balance = (await polyToken.balanceOf(accounts[1])).toNumber();
+      balance.should.be.bignumber.equal(0);
+
+      const event = logs.find(e => e.event === 'Burn');
+      expect(event).to.exist;
+  });
+
+  it('ONLY owner should be able to burn tokens', async function () {
+      await polyToken.transfer(accounts[1], 1, {
+        from: accounts[0]
+      });
+
+      let balance = (await polyToken.balanceOf(accounts[1])).toNumber()
+      balance.should.be.bignumber.equal(1);
+
+      await assertFail(async () => { await polyToken.burn(1, { from: accounts[2] }) });
+
+      balance = (await polyToken.balanceOf(accounts[1])).toNumber()
+      balance.should.be.bignumber.equal(1);
+
+      const { logs } = await polyToken.burn(1, { from: accounts[1] });
+
+      balance = (await polyToken.balanceOf(accounts[1])).toNumber()
+      balance.should.be.bignumber.equal(0);
+
+      const event = logs.find(e => e.event === 'Burn')
+      expect(event).to.exist
+  });
+
+  it('cannot burn more tokens than your balance', async function () {
+     await assertFail(async () => { await polyToken.burn(2000, { from: accounts[1] }) });
   });
 
   it('the fallback function should revert unknown functions', async () => {
