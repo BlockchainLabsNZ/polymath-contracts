@@ -12,20 +12,14 @@ contract('TokenOffering', async function ([miner, owner, investor, wallet]) {
     const startTime = latestTime() + duration.seconds(1);
     const endTime = startTime + duration.weeks(1);
     const rate = new web3.BigNumber(1000);
-    const goal = new web3.BigNumber(3000 * Math.pow(10, 18));
     const cap = new web3.BigNumber(15000 * Math.pow(10, 18));
     console.log(startTime, endTime);
-    tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, rate, cap, goal, wallet);
+    tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, rate, cap, wallet);
     await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(1));
   });
   it('should not be finalized', async function () {
     const isFinalized = await tokenOfferingDeployed.isFinalized();
     assert.isFalse(isFinalized, "isFinalized should be false");
-  });
-
-  it('goal should be 3000 ETH', async function () {
-    const goal = await tokenOfferingDeployed.goal();
-    assert.equal(goal.toString(10), '3000000000000000000000', "goal is incorrect");
   });
 
   it('cap should be 15000 ETH', async function () {

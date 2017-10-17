@@ -2,12 +2,11 @@ pragma solidity ^0.4.13;
 
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import 'zeppelin-solidity/contracts/crowdsale/RefundVault.sol';
 import 'zeppelin-solidity/contracts/token/StandardToken.sol';
 
 /**
  * @title PolyMathTokenOffering
- * @dev Modified from OpenZeppelin's Crowdsale.sol, RefundableCrowdsale.sol,
+ * @dev Modified from OpenZeppelin's Crowdsale.sol
  * CappedCrowdsale.sol, and FinalizableCrowdsale.sol
  * Uses PausableToken rather than MintableToken.
  *
@@ -27,12 +26,6 @@ contract PolyMathTokenOffering is Ownable {
 
   // cap for crowdsale in wei
   uint256 public cap;
-
-  // minimum amount of funds to be raised in weis
-  uint256 public goal;
-
-  // refund vault used to hold funds while crowdsale is running
-  RefundVault public vault;
 
   // The token being sold
   StandardToken public token;
@@ -72,22 +65,18 @@ contract PolyMathTokenOffering is Ownable {
   // termination early or otherwise
   event Finalized();
 
-  function PolyMathTokenOffering(address _token, uint256 _startTime, uint256 _endTime, uint256 _rate, uint256 _cap, uint256 _goal, address _wallet) {
+  function PolyMathTokenOffering(address _token, uint256 _startTime, uint256 _endTime, uint256 _rate, uint256 _cap, address _wallet) {
     require(_startTime >= getBlockTimestamp());
     require(_endTime >= _startTime);
     require(_rate > 0);
     require(_cap > 0);
     require(_wallet != 0x0);
-    require(_goal > 0);
 
-    vault = new RefundVault(_wallet);
-    goal = _goal;
     token = StandardToken(_token);
     startTime = _startTime;
     endTime = _endTime;
     rate = _rate;
     cap = _cap;
-    goal = _goal;
     wallet = _wallet;
   }
 
@@ -157,7 +146,6 @@ contract PolyMathTokenOffering is Ownable {
   // redeem tokens
   function claimTokens() {
     require(isFinalized);
-    require(goalReached());
 
     // confirm there are tokens remaining
     uint256 amount = token.balanceOf(this);
@@ -174,7 +162,6 @@ contract PolyMathTokenOffering is Ownable {
   // redeem tokens (admin fallback)
   function sendTokens(address beneficiary) onlyOwner {
     require(isFinalized);
-    require(goalReached());
 
     // confirm there are tokens remaining
     uint256 amount = token.balanceOf(this);
@@ -191,7 +178,7 @@ contract PolyMathTokenOffering is Ownable {
   // send ether to the fund collection wallet
   // override to create custom fund forwarding mechanisms
   function forwardFunds() internal {
-    vault.deposit.value(msg.value)(msg.sender);
+    wallet.transfer(msg.value);
   }
 
   // @return true if the transaction can buy tokens
@@ -213,31 +200,14 @@ contract PolyMathTokenOffering is Ownable {
     return block.timestamp;
   }
 
-  // if crowdsale is unsuccessful, contributors can claim refunds here
-  function claimRefund() {
-    require(isFinalized);
-    require(!goalReached());
-
-    vault.refund(msg.sender);
-  }
-
-  function goalReached() public constant returns (bool) {
-   return weiRaised >= goal;
-  }
 
   // @dev does not require that crowdsale `hasEnded()` to leave safegaurd
   // in place if ETH rises in price too much during crowdsale.
   // Allows team to close early if cap is exceeded in USD in this event.
   function finalize() onlyOwner {
   require(!isFinalized);
-  if (goalReached()) {
-    vault.close();
-  } else {
-    vault.enableRefunds();
-  }
 
   Finalized();
-
   isFinalized = true;
   }
 
