@@ -7,15 +7,17 @@ import { latestTime, duration } from './helpers/latestTime';
 contract('TokenOffering', async function ([miner, owner, investor, wallet]) {
   let tokenOfferingDeployed;
   let tokenDeployed;
+  let startTime;
   beforeEach(async function () {
     tokenDeployed = await POLYToken.new();
-    const startTime = latestTime() + duration.seconds(1);
+    startTime = latestTime() + duration.seconds(1);
     const endTime = startTime + duration.weeks(1);
-    const rate = new web3.BigNumber(1000);
+    const rate = new web3.BigNumber(1200);
     const cap = new web3.BigNumber(15000 * Math.pow(10, 18));
     console.log(startTime, endTime);
     tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, rate, cap, wallet);
     await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(1));
+    tokenDeployed.transfer(tokenOfferingDeployed.address, 1000000000000000000000000000);
   });
   it('should not be finalized', async function () {
     const isFinalized = await tokenOfferingDeployed.isFinalized();
@@ -62,10 +64,74 @@ contract('TokenOffering', async function ([miner, owner, investor, wallet]) {
       assert.equal(balance.toString(10), '0');
 
       const value = web3.toWei(1, 'ether');
-      await tokenOfferingDeployed.sendTransaction({ from: investor, value, gas: '200000' });
-      balance = await tokenOfferingDeployed.allocations(investor);
-      assert.isTrue(balance.toNumber(10) > 0, 'balanceOf is 0 for investor who just bought tokens');
-    })
+      await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
+      balance = await tokenDeployed.balanceOf(investor);
+      assert.equal(balance.toNumber(10), 1200, 'balanceOf is 1200 for investor who just bought tokens');
+    });
+
+    it('allows to buy tokens at bonus rate after 1 day', async function () {
+      let firstInvestorStatus = await tokenOfferingDeployed.whitelist(investors[0]);
+      assert.isFalse(firstInvestorStatus);
+
+      await tokenOfferingDeployed.whitelistAddresses([investor], true);
+      let balance = await tokenDeployed.balanceOf(investor);
+      assert.equal(balance.toString(10), '0');
+
+      await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(1) + 1);
+
+      const value = web3.toWei(1, 'ether');
+      await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
+      balance = await tokenDeployed.balanceOf(investor);
+      assert.equal(balance.toNumber(10), 1100, 'balanceOf is 1100 for investor who just bought tokens');
+    });
+
+    it('allows to buy tokens at regular rate after 2 days', async function () {
+      let firstInvestorStatus = await tokenOfferingDeployed.whitelist(investors[0]);
+      assert.isFalse(firstInvestorStatus);
+
+      await tokenOfferingDeployed.whitelistAddresses([investor], true);
+      let balance = await tokenDeployed.balanceOf(investor);
+      assert.equal(balance.toString(10), '0');
+
+      await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(2) + 1);
+
+      const value = web3.toWei(1, 'ether');
+      await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
+      balance = await tokenDeployed.balanceOf(investor);
+      assert.equal(balance.toNumber(10), 1000, 'balanceOf is 1000 for investor who just bought tokens');
+    });
+
+    it('allows to buy tokens at regular rate after 3 days', async function () {
+      let firstInvestorStatus = await tokenOfferingDeployed.whitelist(investors[0]);
+      assert.isFalse(firstInvestorStatus);
+
+      await tokenOfferingDeployed.whitelistAddresses([investor], true);
+      let balance = await tokenDeployed.balanceOf(investor);
+      assert.equal(balance.toString(10), '0');
+
+      await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(3) + 1);
+
+      const value = web3.toWei(1, 'ether');
+      await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
+      balance = await tokenDeployed.balanceOf(investor);
+      assert.equal(balance.toNumber(10), 1000, 'balanceOf is 1000 for investor who just bought tokens');
+    });
+
+    it('disallows to buy tokens at regular rate after 3 days', async function () {
+      let firstInvestorStatus = await tokenOfferingDeployed.whitelist(investors[0]);
+      assert.isFalse(firstInvestorStatus);
+
+      await tokenOfferingDeployed.whitelistAddresses([investor], true);
+      let balance = await tokenDeployed.balanceOf(investor);
+      assert.equal(balance.toString(10), '0');
+
+      await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(3) + 1);
+
+      const value = web3.toWei(1, 'ether');
+      await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
+      balance = await tokenDeployed.balanceOf(investor);
+      assert.equal(balance.toNumber(10), 1000, 'balanceOf is 1000 for investor who just bought tokens');
+    });
 
   })
 });
