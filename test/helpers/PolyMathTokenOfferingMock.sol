@@ -3,7 +3,7 @@ pragma solidity ^0.4.15;
 import '../../contracts/PolyMathTokenOffering.sol';
 
 contract PolyMathTokenOfferingMock is PolyMathTokenOffering {
-  uint256 public timeStamp = now;
+  uint256 public timeStamp = block.timestamp;
   function setBlockTimestamp(uint256 _timeStamp) public onlyOwner {
     timeStamp = _timeStamp;
   }

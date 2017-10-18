@@ -14,11 +14,11 @@ contract('TokenOffering', async function ([miner, owner, investor, wallet]) {
     const endTime = startTime + duration.weeks(1);
     const rate = new web3.BigNumber(1200);
     const cap = new web3.BigNumber(15000 * Math.pow(10, 18));
-    console.log(startTime, endTime);
     tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, rate, cap, wallet);
     await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(1));
     tokenDeployed.transfer(tokenOfferingDeployed.address, 1000000000000000000000000000);
   });
+
   it('should not be finalized', async function () {
     const isFinalized = await tokenOfferingDeployed.isFinalized();
     assert.isFalse(isFinalized, "isFinalized should be false");
