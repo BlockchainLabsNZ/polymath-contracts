@@ -16,9 +16,7 @@ contract('TokenOffering', async function ([miner, owner, investor, wallet]) {
     const cap = new web3.BigNumber(15000 * Math.pow(10, 18));
     tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, rate, cap, wallet);
     await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(1));
-    tokenOfferingDeployed.token.issueTokens(tokenOfferingDeployed.address, 1000000000000000000000000000);
-    tokenDeployed.setCrowdsaleAddr(tokenOfferingDeployed.address);
-
+    await tokenDeployed.setCrowdsaleAddress(tokenOfferingDeployed.address);
   });
 
   it('should not be finalized', async function () {

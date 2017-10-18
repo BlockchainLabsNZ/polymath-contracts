@@ -132,7 +132,6 @@ contract PolyMathTokenOffering is Ownable {
    }
 
   // low level token purchase function
-  event Loggyboy(string m);
   // caution: tokens must be redeemed by beneficiary address
   function buyTokens(address beneficiary) payable {
     require(whitelist[beneficiary]);
@@ -158,7 +157,7 @@ contract PolyMathTokenOffering is Ownable {
     }
     // send tokens to purchaser
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
-    token.issueTokens(beneficiary, tokens);
+    token.issueTokensFrom(this, beneficiary, tokens);
     TokenRedeem(beneficiary, tokens);
   }
 
@@ -169,7 +168,7 @@ contract PolyMathTokenOffering is Ownable {
   }
 
   // @return true if the transaction can buy tokens
-  function validPurchase() internal constant returns (bool) {
+  function validPurchase() internal returns (bool) {
     require(!isFinalized);
     if (hasEnded()) {
       finalize();

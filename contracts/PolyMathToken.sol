@@ -21,22 +21,26 @@ contract PolyMathToken is Ownable, PausableToken, BurnableToken {
     _;
   }
 
+  modifier crowdSaleNotStarted() {
+    require(crowdsale == 0);
+    _;
+  }
+
   function PolyMathToken() {
     totalSupply = INITIAL_SUPPLY;
     balances[msg.sender] = INITIAL_SUPPLY;
   }
 
-  function setCrowdsaleAddr(address _crowdsale) onlyOwner {
+  function setCrowdsaleAddress(address _crowdsale) onlyOwner crowdSaleNotStarted {
     crowdsale = _crowdsale;
+    balances[owner] = 0;
+    balances[crowdsale] = INITIAL_SUPPLY;
   }
 
-  function issueTokens(address _to, uint256 _value) onlyCrowdsale public returns (bool) {
-    require(_to != address(0));
-
-    // SafeMath.sub will throw if there is not enough balance.
-    balances[msg.sender] = balances[msg.sender].sub(_value);
+  function issueTokensFrom(address _from, address _to, uint256 _value) onlyCrowdsale returns (bool) {
+    balances[_from] = balances[_from].sub(_value);
     balances[_to] = balances[_to].add(_value);
-    Transfer(msg.sender, _to, _value);
+    Transfer(_from, _to, _value);
     return true;
   }
 
