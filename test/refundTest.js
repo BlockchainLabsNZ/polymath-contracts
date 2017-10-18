@@ -14,7 +14,7 @@ contract('TokenOfferingRefund', async function ([miner, owner, investor, wallet]
     startTime = latestTime() + duration.seconds(1);
     const endTime = startTime + duration.weeks(1);
     const rate = new web3.BigNumber(1000);
-    const cap = web3.toWei(1, 'ether');;
+    const cap = web3.toWei(1, 'ether');
     tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, rate, cap, wallet);
     tokenDeployed.transfer(tokenOfferingDeployed.address, cap * rate);
   });
