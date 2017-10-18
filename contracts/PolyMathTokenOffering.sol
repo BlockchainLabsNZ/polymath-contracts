@@ -158,7 +158,7 @@ contract PolyMathTokenOffering is Ownable {
     }
     // send tokens to purchaser
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
-    token.transfer(beneficiary, tokens);
+    token.issueTokens(beneficiary, tokens);
     TokenRedeem(beneficiary, tokens);
   }
 
