@@ -65,6 +65,12 @@ contract PolyMathTokenOffering is Ownable {
   // termination early or otherwise
   event Finalized();
 
+  /**
+   * event refund of excess ETH if purchase is above the cap
+   * @param amount amount of ETH (in wei) refunded
+   */
+  event Refund(uint256 amount);
+
   function PolyMathTokenOffering(address _token, uint256 _startTime, uint256 _endTime, uint256 _rate, uint256 _cap, address _wallet) {
     require(_startTime >= getBlockTimestamp());
     require(_endTime >= _startTime);
@@ -118,7 +124,15 @@ contract PolyMathTokenOffering is Ownable {
     }
    }
 
+   function ethToTokens(uint256 ethAmount) internal returns (uint256) {
+    uint256 tokenAmount;
+    uint256 bonusRate = calculateBonusRate();
+    tokenAmount = (ethAmount.mul(bonusRate)).div(1 ether);
+    return tokenAmount;
+   }
+
   // low level token purchase function
+  event Loggyboy(string m);
   // caution: tokens must be redeemed by beneficiary address
   function buyTokens(address beneficiary) payable {
     require(whitelist[beneficiary]);
@@ -126,13 +140,22 @@ contract PolyMathTokenOffering is Ownable {
     require(validPurchase());
     // calculate token amount to be purchased
     uint256 weiAmount = msg.value;
-    uint256 bonusRate = calculateBonusRate();
-    uint256 tokens = weiAmount.mul(bonusRate).div(1 ether);
+
+    uint256 remainingToFund = cap.sub(weiRaised);
+    if (weiAmount > remainingToFund) {
+      weiAmount = remainingToFund;
+    }
+    uint256 weiToReturn = msg.value.sub(weiAmount);
+    uint256 tokens = ethToTokens(weiAmount);
 
     // update state
     weiRaised = weiRaised.add(weiAmount);
 
-    forwardFunds();
+    forwardFunds(weiAmount);
+    if (weiToReturn > 0) {
+      msg.sender.transfer(weiToReturn);
+      Refund(weiToReturn);
+    }
     // send tokens to purchaser
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
     token.transfer(beneficiary, tokens);
@@ -141,17 +164,21 @@ contract PolyMathTokenOffering is Ownable {
 
   // send ether to the fund collection wallet
   // override to create custom fund forwarding mechanisms
-  function forwardFunds() internal {
-    wallet.transfer(msg.value);
+  function forwardFunds(uint256 amount) internal {
+    wallet.transfer(amount);
   }
 
   // @return true if the transaction can buy tokens
   function validPurchase() internal constant returns (bool) {
-    bool withinCap = weiRaised.add(msg.value) <= cap;
+    require(!isFinalized);
+    if (hasEnded()) {
+      finalize();
+      require(false);
+    }
     bool withinPeriod = getBlockTimestamp() >= startTime && getBlockTimestamp() <= endTime;
     bool nonZeroPurchase = msg.value != 0;
     bool contractHasTokens = token.balanceOf(this) > 0;
-    return withinPeriod && nonZeroPurchase && withinCap && contractHasTokens;
+    return withinPeriod && nonZeroPurchase && contractHasTokens;
   }
 
   // @return true if crowdsale event has ended or cap reached
@@ -165,10 +192,13 @@ contract PolyMathTokenOffering is Ownable {
     return block.timestamp;
   }
 
+  function emergencyFinalize() onlyOwner {
+    finalize();
+  }
   // @dev does not require that crowdsale `hasEnded()` to leave safegaurd
   // in place if ETH rises in price too much during crowdsale.
   // Allows team to close early if cap is exceeded in USD in this event.
-  function finalize() onlyOwner {
+  function finalize() internal {
     require(!isFinalized);
     Finalized();
     isFinalized = true;
