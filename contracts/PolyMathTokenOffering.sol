@@ -173,11 +173,4 @@ contract PolyMathTokenOffering is Ownable {
     Finalized();
     isFinalized = true;
   }
-
-  function unsoldCleanUp() onlyOwner {
-    uint256 amount = token.balanceOf(this);
-    if(amount > 0) {
-      require(token.transfer(msg.sender, amount));
-    }
-  }
 }
