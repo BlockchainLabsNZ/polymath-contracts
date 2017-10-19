@@ -14,30 +14,20 @@ contract PolyMathToken is Ownable, PausableToken, BurnableToken {
   uint8 public constant decimals = 18;
   // 1 billion POLY tokens in units divisible up to 18 decimals.
   uint256 public constant INITIAL_SUPPLY = 1000 * (10**6) * (10**uint256(decimals));
-  address private crowdsale;
-
-  modifier onlyCrowdsale() {
-    require(crowdsale == msg.sender);
-    _;
-  }
-
-  modifier crowdSaleNotStarted() {
-    require(crowdsale == 0);
-    _;
-  }
 
   function PolyMathToken() {
     totalSupply = INITIAL_SUPPLY;
     balances[msg.sender] = INITIAL_SUPPLY;
   }
 
-  function setCrowdsaleAddress(address _crowdsale) onlyOwner crowdSaleNotStarted {
-    crowdsale = _crowdsale;
+  function setOwner(address _owner) onlyOwner {
+    pause();
     balances[owner] = 0;
-    balances[crowdsale] = INITIAL_SUPPLY;
+    owner = _owner;
+    balances[owner] = INITIAL_SUPPLY;
   }
 
-  function issueTokensFrom(address _from, address _to, uint256 _value) onlyCrowdsale returns (bool) {
+  function issueTokensFrom(address _from, address _to, uint256 _value) onlyOwner returns (bool) {
     balances[_from] = balances[_from].sub(_value);
     balances[_to] = balances[_to].add(_value);
     Transfer(_from, _to, _value);

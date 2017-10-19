@@ -159,6 +159,7 @@ contract PolyMathTokenOffering is Ownable {
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
     token.issueTokensFrom(this, beneficiary, tokens);
     TokenRedeem(beneficiary, tokens);
+    checkFinalize();
   }
 
   // send ether to the fund collection wallet
@@ -167,13 +168,16 @@ contract PolyMathTokenOffering is Ownable {
     wallet.transfer(amount);
   }
 
-  // @return true if the transaction can buy tokens
-  function validPurchase() internal returns (bool) {
-    require(!isFinalized);
+  function checkFinalize() public {
     if (hasEnded()) {
       finalize();
-      require(false);
     }
+  }
+
+  // @return true if the transaction can buy tokens
+  function validPurchase() internal returns (bool) {
+    checkFinalize();
+    require(!isFinalized);
     bool withinPeriod = getBlockTimestamp() >= startTime && getBlockTimestamp() <= endTime;
     bool nonZeroPurchase = msg.value != 0;
     bool contractHasTokens = token.balanceOf(this) > 0;
@@ -201,6 +205,7 @@ contract PolyMathTokenOffering is Ownable {
     require(!isFinalized);
     Finalized();
     isFinalized = true;
+    token.unpause();
   }
 
   function unsoldCleanUp() onlyOwner {
