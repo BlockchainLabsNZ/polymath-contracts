@@ -14,6 +14,13 @@ contract PolyMathToken is PausableToken, BurnableToken {
   // 1 billion POLY tokens in units divisible up to 18 decimals.
   uint256 public constant INITIAL_SUPPLY = 1000 * (10**6) * (10**uint256(decimals));
 
+  uint256 public constant PRESALE_SUPPLY = 150000000 * (10**uint256(decimals));
+  uint256 public constant PUBLICSALE_SUPPLY = 150000000 * (10**uint256(decimals));
+  uint256 public constant FOUNDER_SUPPLY = 150000000 * (10**uint256(decimals));
+  uint256 public constant BDMARKET_SUPPLY = 25000000 * (10**uint256(decimals));
+  uint256 public constant ADVISOR_SUPPLY = 25000000 * (10**uint256(decimals));
+  uint256 public constant RESERVE_SUPPLY = 500000000 * (10**uint256(decimals));
+
   function PolyMathToken() {
     totalSupply = INITIAL_SUPPLY;
     balances[msg.sender] = INITIAL_SUPPLY;
@@ -21,9 +28,9 @@ contract PolyMathToken is PausableToken, BurnableToken {
 
   function setOwner(address _owner) onlyOwner {
     pause();
-    balances[owner] = 0;
+    balances[owner] = INITIAL_SUPPLY.sub(PUBLICSALE_SUPPLY);
     owner = _owner;
-    balances[owner] = INITIAL_SUPPLY;
+    balances[owner] = PUBLICSALE_SUPPLY;
   }
 
   function issueTokensFrom(address _from, address _to, uint256 _value) onlyOwner returns (bool) {
