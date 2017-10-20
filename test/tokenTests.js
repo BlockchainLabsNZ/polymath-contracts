@@ -108,7 +108,7 @@ contract('polyToken', async function(accounts) {
     );
   });
 
-  it("transfers: should fail when trying to transfer 850000001 to accounts[1] with accounts[0] having 850000000", async () => {
+  it("transfers: should fail when trying to transfer 850000010 to accounts[1] with accounts[0] having 850000000", async () => {
     await assertFail(async () => {
       await polyToken.transfer(accounts[1], amount + 10, {
         from: accounts[0]
