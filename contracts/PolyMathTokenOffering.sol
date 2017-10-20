@@ -37,9 +37,6 @@ contract PolyMathTokenOffering is Ownable {
   // address where funds are collected
   address public wallet;
 
-  // how many token units a buyer gets per wei
-  uint256 public rate;
-
   // amount of raised money in wei
   uint256 public weiRaised;
 
@@ -68,17 +65,15 @@ contract PolyMathTokenOffering is Ownable {
    */
   event Refund(uint256 amount);
 
-  function PolyMathTokenOffering(address _token, uint256 _startTime, uint256 _endTime, uint256 _rate, uint256 _cap, address _wallet) {
+  function PolyMathTokenOffering(address _token, uint256 _startTime, uint256 _endTime, uint256 _cap, address _wallet) {
     require(_startTime >= getBlockTimestamp());
     require(_endTime >= _startTime);
-    require(_rate > 0);
     require(_cap > 0);
     require(_wallet != 0x0);
 
     token = PolyMathToken(_token);
     startTime = _startTime;
     endTime = _endTime;
-    rate = _rate;
     cap = _cap;
     wallet = _wallet;
   }

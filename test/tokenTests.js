@@ -17,7 +17,7 @@ let initialSupply = new web3.BigNumber(1000 * Math.pow(6, 18));
 
 contract('polyToken', async function(accounts) {
   beforeEach(async () => {
-    polyToken = await POLYToken.new();
+    polyToken = await POLYToken.new(accounts[5]);
   });
 
   it('owner should be able to burn tokens', async function () {
@@ -89,9 +89,9 @@ contract('polyToken', async function(accounts) {
 
   // ############## ERC20 TESTS ##############
 
-  let amount = new web3.BigNumber(1000000000000000000000000000);
+  let amount = new web3.BigNumber(850000000000000000000000000);
   // TRANSERS
-  it("transfers: should transfer 100000000000000000 to accounts[1] with accounts[0] having 100000000000000000", async () => {
+  it("transfers: should transfer 850000000 to accounts[1] with accounts[0] having 850000000", async () => {
     watcher = polyToken.Transfer();
     await polyToken.transfer(accounts[1], amount, {
       from: accounts[0]
@@ -108,7 +108,7 @@ contract('polyToken', async function(accounts) {
     );
   });
 
-  it("transfers: should fail when trying to transfer 100000000000000001 to accounts[1] with accounts[0] having 100000000000000000", async () => {
+  it("transfers: should fail when trying to transfer 850000010 to accounts[1] with accounts[0] having 850000000", async () => {
     await assertFail(async () => {
       await polyToken.transfer(accounts[1], amount + 10, {
         from: accounts[0]

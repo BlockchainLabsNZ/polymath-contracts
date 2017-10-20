@@ -4,17 +4,16 @@ var POLYToken = artifacts.require('PolyMathToken.sol');
 
 import { latestTime, duration } from './helpers/latestTime';
 
-contract('TokenOffering', async function ([miner, owner, investor, wallet]) {
+contract('TokenOffering', async function ([miner, owner, investor, wallet,  presale_wallet]) {
   let tokenOfferingDeployed;
   let tokenDeployed;
   let startTime;
   beforeEach(async function () {
-    tokenDeployed = await POLYToken.new();
+    tokenDeployed = await POLYToken.new(presale_wallet);
     startTime = latestTime() + duration.seconds(1);
     const endTime = startTime + duration.weeks(1);
-    const rate = new web3.BigNumber(1200);
     const cap = web3.toWei(15000, 'ether');
-    tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, rate, cap, wallet);
+    tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, cap, wallet);
     await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(1));
     await tokenDeployed.setOwner(tokenOfferingDeployed.address);
   });

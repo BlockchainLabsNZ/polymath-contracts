@@ -15,7 +15,6 @@ contract('PolyMathVesting', async function ([miner, owner, investor, wallet]) {
     tokenDeployed = await POLYToken.new();
     polyVestingDeployed = await POLYVesting.new(tokenDeployed.address, endTime, owner);
     await tokenDeployed.transfer(polyVestingDeployed.address, 1000000000000000000);
-    // await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(1));
   });
 
   it('tokens cannot be released by someone other than the vesting address', async () => {
