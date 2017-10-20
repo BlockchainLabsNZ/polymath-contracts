@@ -37,9 +37,6 @@ contract PolyMathTokenOffering is Ownable {
   // address where funds are collected
   address public wallet;
 
-  // address to hold team / advisor tokens until vesting complete
-  address public safe;
-
   // amount of raised money in wei
   uint256 public weiRaised;
 
@@ -132,7 +129,7 @@ contract PolyMathTokenOffering is Ownable {
     require(whitelist[beneficiary]);
     require(beneficiary != 0x0);
     require(validPurchase());
-    // calculate token amount to be purchased
+
     uint256 weiAmount = msg.value;
 
     uint256 remainingToFund = cap.sub(weiRaised);
@@ -142,7 +139,6 @@ contract PolyMathTokenOffering is Ownable {
     uint256 weiToReturn = msg.value.sub(weiAmount);
     uint256 tokens = ethToTokens(weiAmount);
 
-    // update state
     weiRaised = weiRaised.add(weiAmount);
 
     forwardFunds(weiAmount);
@@ -152,7 +148,7 @@ contract PolyMathTokenOffering is Ownable {
     }
     // send tokens to purchaser
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
-    token.issueTokensFrom(this, beneficiary, tokens);
+    token.issueTokens(beneficiary, tokens);
     TokenRedeem(beneficiary, tokens);
     checkFinalize();
   }
@@ -201,12 +197,5 @@ contract PolyMathTokenOffering is Ownable {
     Finalized();
     isFinalized = true;
     token.unpause();
-  }
-
-  function unsoldCleanUp() onlyOwner {
-    uint256 amount = token.balanceOf(this);
-    if(amount > 0) {
-      require(token.transfer(msg.sender, amount));
-    }
   }
 }
