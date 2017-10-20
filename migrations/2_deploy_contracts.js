@@ -26,12 +26,15 @@ module.exports = function(deployer, network) {
 
   if(network !== 'development'){
     deployer.deploy(POLYToken, wallet).then(async function() {
+      let tokenDeployed = await POLYToken.deployed();
       const encodedPoly = abiEncoder.rawEncode(['address'], [ wallet]);
       console.log('encodedPoly ENCODED: \n', encodedPoly.toString('hex'));
       // function PolyMathTokenOffering(address _token, uint256 _startTime, uint256 _endTime, uint256 _cap, address _wallet) {
       await deployer.deploy(POLYTokenOffering, POLYToken.address, startTime, endTime, cap, wallet);
       const encodedPOLYTokenOffering = abiEncoder.rawEncode(['address', 'uint256', 'uint256', 'uint256', 'address'], [POLYToken.address, startTime.toString(10), endTime.toString(10), cap.toString(10), wallet]);
       console.log('encodedPOLYTokenOffering ENCODED: \n', encodedPOLYTokenOffering.toString('hex'));
+      await tokenDeployed.setOwner(POLYTokenOffering.address);
+      
     });
   }
 };
