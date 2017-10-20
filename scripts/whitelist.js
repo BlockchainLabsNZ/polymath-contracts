@@ -1,3 +1,4 @@
+require('dotenv').config();
 const ICO_ABI = require('../build/contracts/PolyMathTokenOffering.json').abi;
 const Web3 = require('web3');
 const provider = new Web3.providers.HttpProvider('http://localhost:8549');
@@ -5,9 +6,9 @@ const web3 = new Web3(provider);
 
 const ARRAY_OF_ADDRESSES = require('./ARRAY_OF_ADDRESSES.json');
 
-const CONTRIBUTION_ADDRESS = '0x4CcC32eb5E4398ef76D4A5AB3b95a3Ccf72cf7E9';
-const POLY_TOKEN = '0x0e571D530D7c7E539c514fC4b3662e56F41bE3BC';
-const UNLOCKED_ADDRESS = '0x0039F22efB07A647557C7C5d17854CFD6D489eF3';
+const CONTRIBUTION_ADDRESS = process.env.CONTRIBUTION_ADDRESS;
+const POLY_TOKEN = process.env.POLY_TOKEN;
+const UNLOCKED_ADDRESS = process.env.UNLOCKED_ADDRESS;
 
 const { checkBalances, filterAddresses, setup } = require('./filterAddresses');
 setup({ web3Param: web3, contribAddress: CONTRIBUTION_ADDRESS, polyAddr: POLY_TOKEN });

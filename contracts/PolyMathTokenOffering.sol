@@ -70,6 +70,7 @@ contract PolyMathTokenOffering is Ownable {
     require(_endTime >= _startTime);
     require(_cap > 0);
     require(_wallet != 0x0);
+    require(_token != 0x0);
 
     token = PolyMathToken(_token);
     startTime = _startTime;

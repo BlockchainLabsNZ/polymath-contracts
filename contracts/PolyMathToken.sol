@@ -22,6 +22,7 @@ contract PolyMathToken is PausableToken, BurnableToken {
   uint256 public constant RESERVE_SUPPLY = 500000000 * (10**uint256(decimals));
 
   function PolyMathToken(address _presale_wallet) {
+    require(_presale_wallet != 0x0);
     totalSupply = INITIAL_SUPPLY;
     balances[_presale_wallet] = PRESALE_SUPPLY;
     balances[msg.sender] = INITIAL_SUPPLY.sub(PRESALE_SUPPLY);

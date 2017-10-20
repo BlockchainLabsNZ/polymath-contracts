@@ -7,3 +7,4 @@ coverage.json
 allFiredEvents
 scTopics
 scripts/node_modules
+scripts/.env
