@@ -87,7 +87,7 @@ contract PolyMathTokenOffering is Ownable {
   // Day 1: 1 ETH = 1,200 POLY
   // Day 2: 1 ETH = 1,100 POLY
   // Day 3: 1 ETH = 1,000 POLY
-  function calculateBonusRate() internal returns (uint256) {
+  function calculateBonusRate() public constant returns (uint256) {
     uint256 DAY1 = startTime + 24 hours;
     uint256 DAY2 = DAY1 + 24 hours;
     uint256 DAY3 = DAY2 + 24 hours;
