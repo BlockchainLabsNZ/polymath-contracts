@@ -13,10 +13,10 @@ contract('TokenOffering', async function ([miner, owner, investor, wallet]) {
     startTime = latestTime() + duration.seconds(1);
     const endTime = startTime + duration.weeks(1);
     const rate = new web3.BigNumber(1200);
-    const cap = new web3.BigNumber(15000 * Math.pow(10, 18));
+    const cap = web3.toWei(15000, 'ether');
     tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, rate, cap, wallet);
     await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(1));
-    tokenDeployed.transfer(tokenOfferingDeployed.address, 1000000000000000000000000000);
+    await tokenDeployed.setOwner(tokenOfferingDeployed.address);
   });
 
   it('should not be finalized', async function () {
@@ -61,12 +61,12 @@ contract('TokenOffering', async function ([miner, owner, investor, wallet]) {
 
       await tokenOfferingDeployed.whitelistAddresses([investor], true);
       let balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toString(10), '0');
+      assert.equal(balance.toNumber(), 0);
 
       const value = web3.toWei(1, 'ether');
       await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
       balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(10), 1200, 'balanceOf is 1200 for investor who just bought tokens');
+      assert.equal(balance.toNumber(), 1200, 'balanceOf is 1200 for investor who just bought tokens');
     });
 
     it('allows to buy tokens at bonus rate after 1 day', async function () {

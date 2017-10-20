@@ -37,9 +37,6 @@ contract PolyMathTokenOffering is Ownable {
   // address where funds are collected
   address public wallet;
 
-  // address to hold team / advisor tokens until vesting complete
-  address public safe;
-
   // how many token units a buyer gets per wei
   uint256 public rate;
 
@@ -132,13 +129,12 @@ contract PolyMathTokenOffering is Ownable {
    }
 
   // low level token purchase function
-  event Loggyboy(string m);
   // caution: tokens must be redeemed by beneficiary address
   function buyTokens(address beneficiary) payable {
     require(whitelist[beneficiary]);
     require(beneficiary != 0x0);
     require(validPurchase());
-    // calculate token amount to be purchased
+
     uint256 weiAmount = msg.value;
 
     uint256 remainingToFund = cap.sub(weiRaised);
@@ -148,7 +144,6 @@ contract PolyMathTokenOffering is Ownable {
     uint256 weiToReturn = msg.value.sub(weiAmount);
     uint256 tokens = ethToTokens(weiAmount);
 
-    // update state
     weiRaised = weiRaised.add(weiAmount);
 
     forwardFunds(weiAmount);
@@ -158,8 +153,9 @@ contract PolyMathTokenOffering is Ownable {
     }
     // send tokens to purchaser
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
-    token.transfer(beneficiary, tokens);
+    token.issueTokens(beneficiary, tokens);
     TokenRedeem(beneficiary, tokens);
+    checkFinalize();
   }
 
   // send ether to the fund collection wallet
@@ -168,13 +164,16 @@ contract PolyMathTokenOffering is Ownable {
     wallet.transfer(amount);
   }
 
-  // @return true if the transaction can buy tokens
-  function validPurchase() internal constant returns (bool) {
-    require(!isFinalized);
+  function checkFinalize() public {
     if (hasEnded()) {
       finalize();
-      require(false);
     }
+  }
+
+  // @return true if the transaction can buy tokens
+  function validPurchase() internal returns (bool) {
+    checkFinalize();
+    require(!isFinalized);
     bool withinPeriod = getBlockTimestamp() >= startTime && getBlockTimestamp() <= endTime;
     bool nonZeroPurchase = msg.value != 0;
     bool contractHasTokens = token.balanceOf(this) > 0;
@@ -202,5 +201,6 @@ contract PolyMathTokenOffering is Ownable {
     require(!isFinalized);
     Finalized();
     isFinalized = true;
+    token.unpause();
   }
 }

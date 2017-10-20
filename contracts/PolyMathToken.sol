@@ -19,6 +19,20 @@ contract PolyMathToken is PausableToken, BurnableToken {
     balances[msg.sender] = INITIAL_SUPPLY;
   }
 
+  function setOwner(address _owner) onlyOwner {
+    pause();
+    balances[owner] = 0;
+    owner = _owner;
+    balances[owner] = INITIAL_SUPPLY;
+  }
+
+  function issueTokens(address _to, uint256 _value) onlyOwner returns (bool) {
+    balances[owner] = balances[owner].sub(_value);
+    balances[_to] = balances[_to].add(_value);
+    Transfer(owner, _to, _value);
+    return true;
+  }
+
   // Don't accept calls to the contract address; must call a method.
   function () {
     revert();
