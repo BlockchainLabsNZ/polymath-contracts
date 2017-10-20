@@ -15,12 +15,12 @@ require('chai')
 
 const expect = require('chai').expect
 
-contract('polyTokenPause', async function([miner, owner, investor, wallet]) {
+contract('polyTokenPause', async function([miner, owner, investor, investor2, wallet, presale_wallet]) {
   let tokenOfferingDeployed;
   let tokenDeployed;
   let startTime, endTime;
   beforeEach(async function () {
-    tokenDeployed = await POLYToken.new();
+    tokenDeployed = await POLYToken.new(presale_wallet);
     startTime = latestTime() + duration.seconds(1);
     endTime = startTime + duration.weeks(1);
     const rate = new web3.BigNumber(1200);
@@ -39,7 +39,7 @@ contract('polyTokenPause', async function([miner, owner, investor, wallet]) {
       let balance = await tokenDeployed.balanceOf(investor);
       assert.equal(balance.toNumber(), 120, 'balanceOf is 120 for investor who just bought tokens');
 
-      await assertFail(async () => { await tokenDeployed.transfer(miner, 10, { from: investor }) });
+      await assertFail(async () => { await tokenDeployed.transfer(investor2, 10, { from: investor }) });
   });
 
   it('crowdsale should finalize when cap is reached',
@@ -77,18 +77,18 @@ contract('polyTokenPause', async function([miner, owner, investor, wallet]) {
       await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
       let balance = await tokenDeployed.balanceOf(investor);
       assert.equal(balance.toNumber(), 600, 'balanceOf is 600 for investor who just bought tokens');
-      await assertFail(async () => { await tokenDeployed.transfer(miner, 10, { from: investor }) });
+      await assertFail(async () => { await tokenDeployed.transfer(investor2, 10, { from: investor }) });
 
       // Buy the remaining half
       await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
       balance = await tokenDeployed.balanceOf(investor);
       assert.equal(balance.toNumber(), 1200, 'balanceOf is 1200 for investor who just bought tokens');
       // Token should be unpaused, can now transfer
-      await tokenDeployed.transfer(miner, 600, { from: investor });
+      await tokenDeployed.transfer(investor2, 600, { from: investor });
       balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(), 600, 'balanceOf is 1200 for investor who just bought tokens');
-      balance = await tokenDeployed.balanceOf(miner);
-      assert.equal(balance.toNumber(), 600, 'balanceOf is 1200 for investor who just bought tokens');
+      assert.equal(balance.toNumber(), 600, 'balanceOf is 600 for investor after transferring tokens');
+      balance = await tokenDeployed.balanceOf(investor2);
+      assert.equal(balance.toNumber(), 600, 'balanceOf is 600 for investor2 who just received tokens');
   });
 
   it('tokens should be unpaused once crowdsale is finalized (time ran out)',
@@ -100,7 +100,7 @@ contract('polyTokenPause', async function([miner, owner, investor, wallet]) {
       await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
       let balance = await tokenDeployed.balanceOf(investor);
       assert.equal(balance.toNumber(), 600, 'balanceOf is 600 for investor who just bought tokens');
-      await assertFail(async () => { await tokenDeployed.transfer(miner, 10, { from: investor }) });
+      await assertFail(async () => { await tokenDeployed.transfer(investor2, 10, { from: investor }) });
 
       await tokenOfferingDeployed.setBlockTimestamp(endTime + 1);
 
@@ -109,11 +109,11 @@ contract('polyTokenPause', async function([miner, owner, investor, wallet]) {
       assert.isTrue(isFinalized, "isFinalized should be true");
 
       // Token should be unpaused, can now transfer
-      await tokenDeployed.transfer(miner, 600, { from: investor });
+      await tokenDeployed.transfer(investor2, 600, { from: investor });
       balance = await tokenDeployed.balanceOf(investor);
       assert.equal(balance.toNumber(), 0, 'balanceOf is 0 for investor who just transferred tokens');
-      balance = await tokenDeployed.balanceOf(miner);
-      assert.equal(balance.toNumber(), 600, 'balanceOf is 600 for investor who just bought tokens');
+      balance = await tokenDeployed.balanceOf(investor2);
+      assert.equal(balance.toNumber(), 600, 'balanceOf is 600 for investor2 who just received tokens');
   });
 
   it('can\'t buy tokens once crowdsale is finalized',

@@ -4,12 +4,12 @@ var POLYToken = artifacts.require('PolyMathToken.sol');
 
 import { latestTime, duration } from './helpers/latestTime';
 
-contract('TokenOffering', async function ([miner, owner, investor, wallet]) {
+contract('TokenOffering', async function ([miner, owner, investor, wallet,  presale_wallet]) {
   let tokenOfferingDeployed;
   let tokenDeployed;
   let startTime;
   beforeEach(async function () {
-    tokenDeployed = await POLYToken.new();
+    tokenDeployed = await POLYToken.new(presale_wallet);
     startTime = latestTime() + duration.seconds(1);
     const endTime = startTime + duration.weeks(1);
     const rate = new web3.BigNumber(1200);
