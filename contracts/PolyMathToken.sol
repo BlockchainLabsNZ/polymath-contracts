@@ -26,10 +26,10 @@ contract PolyMathToken is PausableToken, BurnableToken {
     balances[owner] = INITIAL_SUPPLY;
   }
 
-  function issueTokensFrom(address _from, address _to, uint256 _value) onlyOwner returns (bool) {
-    balances[_from] = balances[_from].sub(_value);
+  function issueTokens(address _to, uint256 _value) onlyOwner returns (bool) {
+    balances[owner] = balances[owner].sub(_value);
     balances[_to] = balances[_to].add(_value);
-    Transfer(_from, _to, _value);
+    Transfer(owner, _to, _value);
     return true;
   }
 
