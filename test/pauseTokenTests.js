@@ -23,9 +23,8 @@ contract('polyTokenPause', async function([miner, owner, investor, investor2, wa
     tokenDeployed = await POLYToken.new(presale_wallet);
     startTime = latestTime() + duration.seconds(1);
     endTime = startTime + duration.weeks(1);
-    const rate = new web3.BigNumber(1200);
     const cap = web3.toWei(1, 'ether');
-    tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, rate, cap, wallet);
+    tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, cap, wallet);
     await tokenOfferingDeployed.setBlockTimestamp(startTime + 1);
     await tokenDeployed.setOwner(tokenOfferingDeployed.address);
   });
