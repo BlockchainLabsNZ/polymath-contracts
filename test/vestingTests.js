@@ -8,11 +8,11 @@ import { latestTime, duration } from './helpers/latestTime';
 let polyVestingDeployed, tokenOfferingDeployed, tokenDeployed;
 let startTime, endTime;
 
-contract('PolyMathVesting', async function ([miner, owner, investor, wallet]) {
+contract('PolyMathVesting', async function ([miner, owner, investor, wallet, presale_wallet]) {
   beforeEach(async function () {
     startTime  = latestTime() + duration.seconds(1);
     endTime = startTime + duration.weeks(1);
-    tokenDeployed = await POLYToken.new();
+    tokenDeployed = await POLYToken.new(presale_wallet);
     polyVestingDeployed = await POLYVesting.new(tokenDeployed.address, endTime, owner);
     await tokenDeployed.transfer(polyVestingDeployed.address, 1000000000000000000);
   });

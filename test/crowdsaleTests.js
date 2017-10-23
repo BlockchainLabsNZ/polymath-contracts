@@ -4,6 +4,8 @@ var POLYToken = artifacts.require('PolyMathToken.sol');
 
 import { latestTime, duration } from './helpers/latestTime';
 
+const DECIMALS = 18;
+
 contract('TokenOffering', async function ([miner, owner, investor, wallet,  presale_wallet]) {
   let tokenOfferingDeployed;
   let tokenDeployed;
@@ -65,7 +67,7 @@ contract('TokenOffering', async function ([miner, owner, investor, wallet,  pres
       const value = web3.toWei(1, 'ether');
       await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
       balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(), 1200, 'balanceOf is 1200 for investor who just bought tokens');
+      assert.equal(balance.toNumber(), 1200 * 10 ** DECIMALS, 'balanceOf is 1200 for investor who just bought tokens');
     });
 
     it('allows to buy tokens at bonus rate after 1 day', async function () {
@@ -74,14 +76,14 @@ contract('TokenOffering', async function ([miner, owner, investor, wallet,  pres
 
       await tokenOfferingDeployed.whitelistAddresses([investor], true);
       let balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toString(10), '0');
+      assert.equal(balance.toNumber(), 0);
 
       await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(1) + 1);
 
       const value = web3.toWei(1, 'ether');
       await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
       balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(10), 1100, 'balanceOf is 1100 for investor who just bought tokens');
+      assert.equal(balance.toNumber(10), 1100 * 10 ** DECIMALS, 'balanceOf is 1100 for investor who just bought tokens');
     });
 
     it('allows to buy tokens at regular rate after 2 days', async function () {
@@ -90,14 +92,14 @@ contract('TokenOffering', async function ([miner, owner, investor, wallet,  pres
 
       await tokenOfferingDeployed.whitelistAddresses([investor], true);
       let balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toString(10), '0');
+      assert.equal(balance.toNumber(), 0);
 
       await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(2) + 1);
 
       const value = web3.toWei(1, 'ether');
       await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
       balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(10), 1000, 'balanceOf is 1000 for investor who just bought tokens');
+      assert.equal(balance.toNumber(10), 1000 * 10 ** DECIMALS, 'balanceOf is 1000 for investor who just bought tokens');
     });
 
     it('allows to buy tokens at regular rate after 3 days', async function () {
@@ -106,14 +108,14 @@ contract('TokenOffering', async function ([miner, owner, investor, wallet,  pres
 
       await tokenOfferingDeployed.whitelistAddresses([investor], true);
       let balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toString(10), '0');
+      assert.equal(balance.toNumber(), 0);
 
       await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(3) + 1);
 
       const value = web3.toWei(1, 'ether');
       await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
       balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(10), 1000, 'balanceOf is 1000 for investor who just bought tokens');
+      assert.equal(balance.toNumber(), 1000 * 10 ** DECIMALS, 'balanceOf is 1000 for investor who just bought tokens');
     });
 
     it('disallows to buy tokens at regular rate after 3 days', async function () {
@@ -122,14 +124,14 @@ contract('TokenOffering', async function ([miner, owner, investor, wallet,  pres
 
       await tokenOfferingDeployed.whitelistAddresses([investor], true);
       let balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toString(10), '0');
+      assert.equal(balance.toNumber(), 0);
 
       await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(3) + 1);
 
       const value = web3.toWei(1, 'ether');
       await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
       balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(10), 1000, 'balanceOf is 1000 for investor who just bought tokens');
+      assert.equal(balance.toNumber(), 1000 * 10 ** DECIMALS, 'balanceOf is 1000 for investor who just bought tokens');
     });
 
   })
