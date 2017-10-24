@@ -14,19 +14,16 @@ Please see the [contracts/](contracts) directory.
 
 ## Build
 
-To begin, the `PolyMathToken.sol` contract will be deployed. The total supply of 1,000,000,000 POLY will be minted and stored in the msg.sender address.
-
-The `MultisigWallet.sol` will then be deployed in order to be specified as the destination for future funds raised.
+The `PolyMathToken.sol` contract should be deployed first with the address of the presale wallet in the contructor. The 150million presale tokens will be stored in the presale wallet and the remaining 850million tokens will be stored in the address which deployed the contract.
 
 Next, the `PolyMathTokenOffering.sol` contract is deployed. Parameters will be set by admin in the constructor.
 
-For the presale, 150,000,000 POLY will be deposited to the created contract address where they can be purchased at the set rate in ETH.
+After deploying this contract you must call the `setOwner` function of the deployed `PolyMathToken.sol` contract and give it the address of the `PolyMathTokenOffering.sol` contract. This will allow the crowdsale to transfer tokens even though they are locked until the end of the crowdsale for contributors.
+Calling this function will pause all tokens from being transferred (other than by the crowdsale) until the crowdsale has been finalized. The function will also transfer the 150million tokens allocated for the public sale to the crowdsale contract to be sold. The deployer of `PolyMathToken.sol` will still hold the tokens which are to be vested.
 
-Contributors will be able to send ETH directly to the contract address to have their token balance stored by the contract.
+Contributors must be whitelisted to contribute to the crowdsale. In order for KYC checks to be applied, contributors will first need to go through submitting their ID verification in order to be allowed to send ETH to the crowdsale contract.
 
-In order for KYC checks to be applied, contributors will first need to go through submitting their ID verification in order to be allowed to send ETH to the crowdsale contract.
-
-To achieve this, the `PolyMathWhitelist.sol` contract will be deployed so that once verified, each contributor address can be approved.
+The contract will automatically finalize when cap is reached, and purchases will automatically be blocked once the crowdsale end time is reached. *Please note* that someone must manually call the `checkFinalize()` function if the crowdsale end time is reached without hitting the cap. Calling that function will properly finalize the sale and allow tokens to be transferred by contributors.
 
 Lastly, in order to achieve locking up future distribution of POLY tokens to founders, developers and advisors the `PolyMathVesting.sol` will be deployed.
 
@@ -45,7 +42,7 @@ $ npm install
 ```
 
 ### Test
-$ truffle test
+$ npm test
 
 [polymath]: https://polymath.network
 [ethereum]: https://www.ethereum.org/
