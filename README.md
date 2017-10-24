@@ -18,7 +18,7 @@ The `PolyMathToken.sol` contract should be deployed first with the address of th
 
 Next, the `PolyMathTokenOffering.sol` contract is deployed. Parameters will be set by admin in the constructor.
 
-After deploying this contract you must call the `setOwner` function of the deployed `PolMathToken.sol` contract and give it the address of the `PolyMathTokenOffering.sol` contract. This will allow the crowdsale to transfer tokens even though they are locked until the end of the crowdsale for contributors.
+After deploying this contract you must call the `setOwner` function of the deployed `PolyMathToken.sol` contract and give it the address of the `PolyMathTokenOffering.sol` contract. This will allow the crowdsale to transfer tokens even though they are locked until the end of the crowdsale for contributors.
 Calling this function will pause all tokens from being transferred (other than by the crowdsale) until the crowdsale has been finalized. The function will also transfer the 150million tokens allocated for the public sale to the crowdsale contract to be sold. The deployer of `PolyMathToken.sol` will still hold the tokens which are to be vested.
 
 Contributors must be whitelisted to contribute to the crowdsale. In order for KYC checks to be applied, contributors will first need to go through submitting their ID verification in order to be allowed to send ETH to the crowdsale contract.
