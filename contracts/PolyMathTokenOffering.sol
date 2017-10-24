@@ -118,10 +118,7 @@ contract PolyMathTokenOffering is Ownable {
    }
 
    function ethToTokens(uint256 ethAmount) internal returns (uint256) {
-    uint256 tokenAmount;
-    uint256 bonusRate = calculateBonusRate();
-    tokenAmount = (ethAmount.mul(bonusRate)).div(1 ether);
-    return tokenAmount;
+    return ethAmount.mul(calculateBonusRate());
    }
 
   // low level token purchase function

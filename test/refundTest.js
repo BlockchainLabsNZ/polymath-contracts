@@ -5,6 +5,8 @@ const assertFail = require("./helpers/assertFail");
 
 import { latestTime, duration } from './helpers/latestTime';
 
+const DECIMALS = 18;
+
 contract('TokenOfferingRefund', async function ([miner, owner, investor, wallet,  presale_wallet]) {
   let tokenOfferingDeployed;
   let tokenDeployed;
@@ -30,7 +32,7 @@ contract('TokenOfferingRefund', async function ([miner, owner, investor, wallet,
       await tokenOfferingDeployed.sendTransaction({ from: investor, value: value, gas: '200000' });
 
       let balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(), 1000);
+      assert.equal(balance.toNumber(), 1000 * 10 ** DECIMALS);
     });
 
     it('refund excess ETH if contribution is above cap (day 1)', async function () {
@@ -44,7 +46,7 @@ contract('TokenOfferingRefund', async function ([miner, owner, investor, wallet,
       await tokenOfferingDeployed.sendTransaction({ from: investor, value: value, gas: '200000' });
 
       let balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(), 1200);
+      assert.equal(balance.toNumber(), 1200 * 10 ** DECIMALS);
     });
 
      it('refund excess ETH in multiple contributions if contributions are above cap (day 1)', async function () {
@@ -58,13 +60,13 @@ contract('TokenOfferingRefund', async function ([miner, owner, investor, wallet,
       await tokenOfferingDeployed.sendTransaction({ from: investor, value: value, gas: '200000' });
 
       let balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(), 1188);
+      assert.equal(balance.toNumber(), 1188 * 10 ** DECIMALS);
 
       value = web3.toWei(1, 'ether');
       await tokenOfferingDeployed.sendTransaction({ from: investor, value: value, gas: '200000' });
 
       balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(), 1200);
+      assert.equal(balance.toNumber(), 1200 * 10 ** DECIMALS);
     });
 
      it('refund excess ETH if cap has been exceeded (day 1)', async function () {
@@ -78,13 +80,13 @@ contract('TokenOfferingRefund', async function ([miner, owner, investor, wallet,
       await tokenOfferingDeployed.sendTransaction({ from: investor, value: value, gas: '200000' });
 
       let balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(), 1200);
+      assert.equal(balance.toNumber(), 1200 * 10 ** DECIMALS);
 
       value = web3.toWei(10, 'ether');
       await assertFail(async () => { await tokenOfferingDeployed.sendTransaction({ from: investor, value: value, gas: '200000' })});
 
       balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(), 1200);
+      assert.equal(balance.toNumber(), 1200 * 10 ** DECIMALS);
     });
 
      it('refund excess ETH if cap has been exceeded (day 1)', async function () {
@@ -98,12 +100,12 @@ contract('TokenOfferingRefund', async function ([miner, owner, investor, wallet,
       await tokenOfferingDeployed.sendTransaction({ from: investor, value: value, gas: '200000' });
 
       let balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(), 1200);
+      assert.equal(balance.toNumber(), 1200 * 10 ** DECIMALS);
 
       value = web3.toWei(10, 'ether');
       await assertFail(async () => { await tokenOfferingDeployed.sendTransaction({ from: investor, value: value, gas: '200000' })});
 
       balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(), 1200);
+      assert.equal(balance.toNumber(), 1200 * 10 ** DECIMALS);
     });
 });
