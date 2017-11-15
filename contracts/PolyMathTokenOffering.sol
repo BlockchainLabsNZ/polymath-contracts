@@ -69,6 +69,7 @@ contract PolyMathTokenOffering is Ownable {
     require(_startTime >= getBlockTimestamp());
     require(_endTime >= _startTime);
     require(_cap > 0);
+    require(_cap <= PolyMathToken(_token).PUBLICSALE_SUPPLY());
     require(_wallet != 0x0);
     require(_token != 0x0);
 

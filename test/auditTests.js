@@ -27,7 +27,7 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
 
   it('Cap should not be able to exceed balance of crowdsale contract', async function () {
     tokenDeployed = await POLYToken.new(presale_wallet);
-    await assertFail(async () => { await TokenOffering.new(tokenDeployed.address, latestTime() + duration.seconds(20), latestTime() + duration.weeks(1), web3.toWei(150000001, crowdsale_wallet)) });
+    await assertFail(async () => { await TokenOffering.new(tokenDeployed.address, latestTime() + duration.seconds(20), latestTime() + duration.weeks(1), web3.toWei(150000001, 'ether'), crowdsale_wallet) });
   });
 
   it('Tokens should not be able to be sent to the null address from the token contract', async function () {
