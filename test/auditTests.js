@@ -69,8 +69,7 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
     describe('Initialize crowdsale', async function () {
       beforeEach(async function () {
         await tokenDeployed.initializeCrowdsale(tokenOfferingDeployed.address);
-        let investors = [investor];
-        await tokenOfferingDeployed.whitelistAddresses(investors, true);
+        await tokenOfferingDeployed.whitelistAddresses([investor], true);
       });
 
       it('Tokens should not be able to be refunded before the Crowdsale is finished', async function () {
@@ -90,6 +89,13 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
         await tokenOfferingDeployed.setBlockTimestamp(startTime + 1);
         await assertFail(async () => { await tokenOfferingDeployed.buyTokens(0x0, { from: investor });
         });
+      });
+
+      it('Token Ownership should be transferred when crowdsale is finalized', async function () {
+        assert.equal(await tokenDeployed.owner.call(), tokenOfferingDeployed.address);
+        await tokenOfferingDeployed.setBlockTimestamp(endTime + 1);
+        await tokenOfferingDeployed.checkFinalize();
+        assert.equal(await tokenDeployed.owner.call(), deployer);
       });
     });
   });
