@@ -147,6 +147,7 @@ contract PolyMathTokenOffering is Ownable {
 
     forwardFunds(weiAmount);
     if (weiToReturn > 0) {
+      weiToReturn = 0;
       msg.sender.transfer(weiToReturn);
       Refund(msg.sender, beneficiary, weiToReturn);
     }
