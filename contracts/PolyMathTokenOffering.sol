@@ -196,6 +196,7 @@ contract PolyMathTokenOffering is Ownable {
     Finalized();
     isFinalized = true;
     token.unpause();
+    token.transferOwnership(owner);
   }
 
   // Allows the owner to take back the tokens that are assigned to the sale contract.
