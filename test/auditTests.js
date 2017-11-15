@@ -70,6 +70,7 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
 
       it('Unsold tokens should be refundable after the crowdsale is finished', async function () {
         await tokenOfferingDeployed.setBlockTimestamp(endTime + 1);
+        await tokenOfferingDeployed.checkFinalize();
         assert.equal((await tokenDeployed.balanceOf(tokenOfferingDeployed.address)).toNumber(), 150000000 * 10 ** DECIMALS, "The Crowdsale should have 150mil");
         await tokenOfferingDeployed.refund();
         assert.equal((await tokenDeployed.balanceOf(tokenOfferingDeployed.address)).toNumber(), 0, "The Crowdsale should have no balance after a refund");
