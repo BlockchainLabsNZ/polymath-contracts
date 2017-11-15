@@ -63,7 +63,7 @@ contract PolyMathTokenOffering is Ownable {
    * event refund of excess ETH if purchase is above the cap
    * @param amount amount of ETH (in wei) refunded
    */
-  event Refund(uint256 amount);
+  event Refund(address indexed purchaser, address indexed beneficiary, uint256 amount);
 
   function PolyMathTokenOffering(address _token, uint256 _startTime, uint256 _endTime, uint256 _cap, address _wallet) {
     require(_startTime >= getBlockTimestamp());
@@ -143,7 +143,7 @@ contract PolyMathTokenOffering is Ownable {
     forwardFunds(weiAmount);
     if (weiToReturn > 0) {
       msg.sender.transfer(weiToReturn);
-      Refund(weiToReturn);
+      Refund(msg.sender, beneficiary, weiToReturn);
     }
     // send tokens to purchaser
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
