@@ -28,7 +28,7 @@ contract('polyTokenPause', async function([miner, owner, investor, investor2, wa
     const cap = web3.toWei(1, 'ether');
     tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, cap, wallet);
     await tokenOfferingDeployed.setBlockTimestamp(startTime + 1);
-    await tokenDeployed.setOwner(tokenOfferingDeployed.address);
+    await tokenDeployed.initializeCrowdsale(tokenOfferingDeployed.address);
   });
 
   it('tokens should be paused once they are sold',

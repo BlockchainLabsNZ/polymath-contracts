@@ -21,6 +21,13 @@ contract PolyMathToken is PausableToken, BurnableToken {
   uint256 public constant ADVISOR_SUPPLY = 25000000 * (10**uint256(decimals));
   uint256 public constant RESERVE_SUPPLY = 500000000 * (10**uint256(decimals));
 
+  bool private crowdsaleInitialized = false;
+
+  modifier crowdsaleNotInitialized() {
+    require(crowdsaleInitialized == false);
+    _;
+  }
+
   function PolyMathToken(address _presale_wallet) {
     require(_presale_wallet != 0x0);
     totalSupply = INITIAL_SUPPLY;
@@ -30,11 +37,10 @@ contract PolyMathToken is PausableToken, BurnableToken {
     Transfer(0x0, _presale_wallet, PRESALE_SUPPLY);
   }
 
-  function setOwner(address _owner) onlyOwner {
+  function initializeCrowdsale(address _crowdsale) onlyOwner crowdsaleNotInitialized {
+    transfer(_crowdsale, PUBLICSALE_SUPPLY);
     pause();
-    balances[owner] = INITIAL_SUPPLY.sub(PUBLICSALE_SUPPLY);
-    owner = _owner;
-    balances[owner] = PUBLICSALE_SUPPLY;
+    transferOwnership(_crowdsale);
   }
 
   function issueTokens(address _to, uint256 _value) onlyOwner returns (bool) {

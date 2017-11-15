@@ -17,7 +17,7 @@ contract('TokenOffering', async function ([miner, owner, investor, wallet,  pres
     const cap = web3.toWei(15000, 'ether');
     tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, cap, wallet);
     await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(1));
-    await tokenDeployed.setOwner(tokenOfferingDeployed.address);
+    await tokenDeployed.initializeCrowdsale(tokenOfferingDeployed.address);
   });
 
   it('should not be finalized', async function () {

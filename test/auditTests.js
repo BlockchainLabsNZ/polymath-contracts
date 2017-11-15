@@ -54,7 +54,7 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
       assert.equal((await tokenDeployed.balanceOf(tokenOfferingDeployed.address)).toNumber(), 0, "The Crowdsale should have no balance");
       assert.equal((await tokenDeployed.balanceOf(presale_wallet)).toNumber(), 150000000 * 10 ** DECIMALS, "The Presale should hold 150mil");
 
-      await tokenDeployed.setOwner(tokenOfferingDeployed.address);
+      await tokenDeployed.initializeCrowdsale(tokenOfferingDeployed.address);
 
       assert.equal((await tokenDeployed.balanceOf(deployer)).toNumber(), 700000000 * 10 ** DECIMALS, "The Token deployer should hold 700mil");
       assert.equal((await tokenDeployed.balanceOf(tokenOfferingDeployed.address)).toNumber(), 150000000 * 10 ** DECIMALS, "The Crowdsale should hold 150mil");
@@ -63,7 +63,7 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
 
     describe('Initialize crowdsale', async function () {
       beforeEach(async function () {
-        await tokenDeployed.setOwner(tokenOfferingDeployed.address);
+        await tokenDeployed.initializeCrowdsale(tokenOfferingDeployed.address);
         let investors = [investor];
         await tokenOfferingDeployed.whitelistAddresses(investors, true);
       });

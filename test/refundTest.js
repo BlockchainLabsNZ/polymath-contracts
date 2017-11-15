@@ -17,7 +17,7 @@ contract('TokenOfferingRefund', async function ([miner, owner, investor, wallet,
     const endTime = startTime + duration.weeks(1);
     const cap = web3.toWei(1, 'ether');
     tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, cap, wallet);
-    await tokenDeployed.setOwner(tokenOfferingDeployed.address);
+    await tokenDeployed.initializeCrowdsale(tokenOfferingDeployed.address);
   });
 
     it('refund excess ETH if contribution is above cap (day 4)', async function () {
