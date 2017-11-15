@@ -11,15 +11,16 @@ contract PolyMathToken is PausableToken, BurnableToken {
   // ERC20 compliant types
   // (see https://blog.zeppelin.solutions/tierion-network-token-audit-163850fd1787)
   uint8 public constant decimals = 18;
+  uint256 private constant token_factor = 10**uint256(decimals);
   // 1 billion POLY tokens in units divisible up to 18 decimals.
-  uint256 public constant INITIAL_SUPPLY = 1000 * (10**6) * (10**uint256(decimals));
+  uint256 public constant INITIAL_SUPPLY = 1000 * (10**6) * token_factor;
 
-  uint256 public constant PRESALE_SUPPLY = 150000000 * (10**uint256(decimals));
-  uint256 public constant PUBLICSALE_SUPPLY = 150000000 * (10**uint256(decimals));
-  uint256 public constant FOUNDER_SUPPLY = 150000000 * (10**uint256(decimals));
-  uint256 public constant BDMARKET_SUPPLY = 25000000 * (10**uint256(decimals));
-  uint256 public constant ADVISOR_SUPPLY = 25000000 * (10**uint256(decimals));
-  uint256 public constant RESERVE_SUPPLY = 500000000 * (10**uint256(decimals));
+  uint256 public constant PRESALE_SUPPLY = 150000000 * token_factor;
+  uint256 public constant PUBLICSALE_SUPPLY = 150000000 * token_factor;
+  uint256 public constant FOUNDER_SUPPLY = 150000000 * token_factor;
+  uint256 public constant BDMARKET_SUPPLY = 25000000 * token_factor;
+  uint256 public constant ADVISOR_SUPPLY = 25000000 * token_factor;
+  uint256 public constant RESERVE_SUPPLY = 500000000 * token_factor;
 
   bool private crowdsaleInitialized = false;
 
