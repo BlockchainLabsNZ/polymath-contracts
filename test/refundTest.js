@@ -69,27 +69,7 @@ contract('TokenOfferingRefund', async function ([miner, owner, investor, wallet,
       assert.equal(balance.toNumber(), 1200 * 10 ** DECIMALS);
     });
 
-     it('refund excess ETH if cap has been exceeded (day 1)', async function () {
-      await tokenOfferingDeployed.setBlockTimestamp(startTime + 1);
-      await tokenOfferingDeployed.whitelistAddresses([investor], true);
-
-      let investorStatus = await tokenOfferingDeployed.whitelist(investor);
-      assert.isTrue(investorStatus);
-
-      let value = web3.toWei(1, 'ether');
-      await tokenOfferingDeployed.sendTransaction({ from: investor, value: value, gas: '200000' });
-
-      let balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(), 1200 * 10 ** DECIMALS);
-
-      value = web3.toWei(10, 'ether');
-      await assertFail(async () => { await tokenOfferingDeployed.sendTransaction({ from: investor, value: value, gas: '200000' })});
-
-      balance = await tokenDeployed.balanceOf(investor);
-      assert.equal(balance.toNumber(), 1200 * 10 ** DECIMALS);
-    });
-
-     it('refund excess ETH if cap has been exceeded (day 1)', async function () {
+    it('refund excess ETH if cap has been exceeded (day 1)', async function () {
       await tokenOfferingDeployed.setBlockTimestamp(startTime + 1);
       await tokenOfferingDeployed.whitelistAddresses([investor], true);
 
