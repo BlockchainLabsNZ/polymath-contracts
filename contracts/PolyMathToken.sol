@@ -38,6 +38,7 @@ contract PolyMathToken is PausableToken, BurnableToken {
   }
 
   function initializeCrowdsale(address _crowdsale) onlyOwner crowdsaleNotInitialized {
+    crowdsaleInitialized = true;
     transfer(_crowdsale, PUBLICSALE_SUPPLY);
     pause();
     transferOwnership(_crowdsale);

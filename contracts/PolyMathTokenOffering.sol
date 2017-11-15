@@ -202,6 +202,7 @@ contract PolyMathTokenOffering is Ownable {
   // Allows the owner to take back the tokens that are assigned to the sale contract.
   event TokensRefund(uint256 _amount);
   function refund() external onlyOwner returns (bool) {
+      require(isFinalized);
       uint256 tokens = token.balanceOf(address(this));
 
       if (tokens == 0) {

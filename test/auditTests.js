@@ -49,6 +49,11 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
       tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, cap, crowdsale_wallet);
     });
 
+    it('Crowdsale should only be able to be initialized once', async function () {
+      await tokenDeployed.initializeCrowdsale(tokenOfferingDeployed.address);
+      await assertFail(async () => { await tokenDeployed.initializeCrowdsale(tokenOfferingDeployed.address) });;
+    });
+
     it('After deploying the Token and the Crowdsale, the balances should all be correct', async function () {
       assert.equal((await tokenDeployed.balanceOf(deployer)).toNumber(), 850000000 * 10 ** DECIMALS, "The Token deployer should hold 850mil");
       assert.equal((await tokenDeployed.balanceOf(tokenOfferingDeployed.address)).toNumber(), 0, "The Crowdsale should have no balance");
@@ -66,6 +71,11 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
         await tokenDeployed.initializeCrowdsale(tokenOfferingDeployed.address);
         let investors = [investor];
         await tokenOfferingDeployed.whitelistAddresses(investors, true);
+      });
+
+      it('Tokens should not be able to be refunded before the Crowdsale is finished', async function () {
+        await tokenOfferingDeployed.setBlockTimestamp(startTime + 1);
+        await assertFail(async () => { await tokenOfferingDeployed.refund() });
       });
 
       it('Unsold tokens should be refundable after the crowdsale is finished', async function () {
