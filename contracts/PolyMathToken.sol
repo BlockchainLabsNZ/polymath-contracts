@@ -24,8 +24,10 @@ contract PolyMathToken is PausableToken, BurnableToken {
   function PolyMathToken(address _presale_wallet) {
     require(_presale_wallet != 0x0);
     totalSupply = INITIAL_SUPPLY;
+    balances[msg.sender] = totalSupply - PRESALE_SUPPLY;
+    Transfer(0x0, msg.sender, totalSupply - PRESALE_SUPPLY);
     balances[_presale_wallet] = PRESALE_SUPPLY;
-    balances[msg.sender] = INITIAL_SUPPLY.sub(PRESALE_SUPPLY);
+    Transfer(0x0, _presale_wallet, PRESALE_SUPPLY);
   }
 
   function setOwner(address _owner) onlyOwner {

@@ -19,10 +19,14 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
   let startTime;
   let endTime;
 
-  it('Initializing the PolyMathToken contract should emit a tranfer event which generates the tokens', async function () {
-    const { logs } = await POLYToken.new(presale_wallet);
-    const event = logs.find(e => e.event === 'Transfer');
-    expect(event).to.exist;
+  it('Initializing the PolyMathToken contract should emit a transfer event which generates the tokens', async function () {
+    tokenDeployed = await POLYToken.new(presale_wallet);
+    let event = tokenDeployed.Transfer({});
+    await event.watch(function(err, res) {
+        if (!err) {
+          assert.equal(res['event'], 'Transfer');
+        }
+    });
   });
 
   it('Cap should not be able to exceed balance of crowdsale contract', async function () {
