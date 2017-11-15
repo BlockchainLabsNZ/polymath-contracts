@@ -40,6 +40,11 @@ contract PolyMathTokenOffering is Ownable {
   // amount of raised money in wei
   uint256 public weiRaised;
 
+  // Timestamps for the bonus days, set in the constructor
+  uint256 private DAY1;
+  uint256 private DAY2;
+  uint256 private DAY3;
+
   /**
    * event for token purchase logging
    * @param purchaser who paid for the tokens
@@ -78,6 +83,9 @@ contract PolyMathTokenOffering is Ownable {
     endTime = _endTime;
     cap = _cap;
     wallet = _wallet;
+    DAY1 = startTime + 24 hours;
+    DAY2 = DAY1 + 24 hours;
+    DAY3 = DAY2 + 24 hours;
   }
 
   // fallback function can be used to buy tokens
@@ -89,9 +97,6 @@ contract PolyMathTokenOffering is Ownable {
   // Day 2: 1 ETH = 1,100 POLY
   // Day 3: 1 ETH = 1,000 POLY
   function calculateBonusRate() public constant returns (uint256) {
-    uint256 DAY1 = startTime + 24 hours;
-    uint256 DAY2 = DAY1 + 24 hours;
-    uint256 DAY3 = DAY2 + 24 hours;
     uint256 bonusRate = 1000;
 
     uint256 currentTime = getBlockTimestamp();

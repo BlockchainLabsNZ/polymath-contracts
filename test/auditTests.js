@@ -22,9 +22,10 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
   it('Initializing the PolyMathToken contract should emit a transfer event which generates the tokens', async function () {
     tokenDeployed = await POLYToken.new(presale_wallet);
     let event = tokenDeployed.Transfer({});
-    await event.watch(function(err, res) {
+    event.watch(function(err, res) {
         if (!err) {
           assert.equal(res['event'], 'Transfer');
+          event.stopWatching();
         }
     });
   });
