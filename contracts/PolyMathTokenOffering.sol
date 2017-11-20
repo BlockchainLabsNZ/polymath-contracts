@@ -184,7 +184,7 @@ contract PolyMathTokenOffering is Ownable {
   function hasEnded() public constant returns (bool) {
     bool capReached = weiRaised >= cap;
     bool passedEndTime = getBlockTimestamp() > endTime;
-    return passedEndTime || capReached;
+    return isFinalized || passedEndTime || capReached;
   }
 
   function getBlockTimestamp() internal constant returns (uint256) {
@@ -208,7 +208,7 @@ contract PolyMathTokenOffering is Ownable {
   // Allows the owner to take back the tokens that are assigned to the sale contract.
   event TokensRefund(uint256 _amount);
   function refund() external onlyOwner returns (bool) {
-      require(isFinalized);
+      require(!hasEnded());
       uint256 tokens = token.balanceOf(address(this));
 
       if (tokens == 0) {
