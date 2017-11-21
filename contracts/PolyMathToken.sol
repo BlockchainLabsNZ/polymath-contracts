@@ -16,12 +16,12 @@ contract PolyMathToken is PausableToken, BurnableToken {
   // 1 billion POLY tokens in units divisible up to 18 decimals.
   uint256 public constant INITIAL_SUPPLY = 1000 * (10**6) * token_factor;
 
-  uint256 public constant PRESALE_SUPPLY = 150000000 * token_factor;
-  uint256 public constant PUBLICSALE_SUPPLY = 150000000 * token_factor;
+  uint256 public constant PRESALE_SUPPLY = 200000000 * token_factor;
+  uint256 public constant PUBLICSALE_SUPPLY = 120000000 * token_factor;
   uint256 public constant FOUNDER_SUPPLY = 150000000 * token_factor;
-  uint256 public constant BDMARKET_SUPPLY = 25000000 * token_factor;
+  uint256 public constant BDMARKET_SUPPLY = 55000000 * token_factor;
   uint256 public constant ADVISOR_SUPPLY = 25000000 * token_factor;
-  uint256 public constant RESERVE_SUPPLY = 500000000 * token_factor;
+  uint256 public constant RESERVE_SUPPLY = 450000000 * token_factor;
 
   address private crowdsale;
 
@@ -69,5 +69,16 @@ contract PolyMathToken is PausableToken, BurnableToken {
   function () {
     revert();
   }
+
+  function claimTokens(address _token) public onlyOwner {
+        if (_token == 0x0) {
+            owner.transfer(this.balance);
+            return;
+        }
+
+        ERC20Basic token = ERC20Basic(_token);
+        uint256 balance = token.balanceOf(this);
+        token.transfer(owner, balance);
+    }
 
 }
