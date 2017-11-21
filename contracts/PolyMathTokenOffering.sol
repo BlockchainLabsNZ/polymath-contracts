@@ -2,6 +2,7 @@ pragma solidity ^0.4.13;
 
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+import 'zeppelin-solidity/contracts/token/ERC20Basic.sol';
 import './PolyMathToken.sol';
 
 /**
@@ -225,4 +226,17 @@ contract PolyMathTokenOffering is Ownable {
 
       return true;
    }
+
+  function claimTokens(address _token) public onlyOwner {
+    require(hasEnded());
+    if (_token == 0x0) {
+        owner.transfer(this.balance);
+        return;
+    }
+
+    ERC20Basic refundToken = ERC20Basic(_token);
+    uint256 balance = refundToken.balanceOf(this);
+    refundToken.transfer(owner, balance);
+    TokensRefund(balance);
+  }
 }

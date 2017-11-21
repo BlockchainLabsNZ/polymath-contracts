@@ -56,15 +56,15 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
     });
 
     it('After deploying the Token and the Crowdsale, the balances should all be correct', async function () {
-      assert.equal((await tokenDeployed.balanceOf(deployer)).toNumber(), 850000000 * 10 ** DECIMALS, "The Token deployer should hold 850mil");
+      assert.equal((await tokenDeployed.balanceOf(deployer)).toNumber(), 800000000 * 10 ** DECIMALS, "The Token deployer should hold 800mil");
       assert.equal((await tokenDeployed.balanceOf(tokenOfferingDeployed.address)).toNumber(), 0, "The Crowdsale should have no balance");
-      assert.equal((await tokenDeployed.balanceOf(presale_wallet)).toNumber(), 150000000 * 10 ** DECIMALS, "The Presale should hold 150mil");
+      assert.equal((await tokenDeployed.balanceOf(presale_wallet)).toNumber(), 200000000 * 10 ** DECIMALS, "The Presale should hold 200mil");
 
       await tokenDeployed.initializeCrowdsale(tokenOfferingDeployed.address);
 
-      assert.equal((await tokenDeployed.balanceOf(deployer)).toNumber(), 700000000 * 10 ** DECIMALS, "The Token deployer should hold 700mil");
-      assert.equal((await tokenDeployed.balanceOf(tokenOfferingDeployed.address)).toNumber(), 150000000 * 10 ** DECIMALS, "The Crowdsale should hold 150mil");
-      assert.equal((await tokenDeployed.balanceOf(presale_wallet)).toNumber(), 150000000 * 10 ** DECIMALS, "The Presale should hold 150mil");
+      assert.equal((await tokenDeployed.balanceOf(deployer)).toNumber(), 680000000 * 10 ** DECIMALS, "The Token deployer should hold 680mil");
+      assert.equal((await tokenDeployed.balanceOf(tokenOfferingDeployed.address)).toNumber(), 120000000 * 10 ** DECIMALS, "The Crowdsale should hold 120mil");
+      assert.equal((await tokenDeployed.balanceOf(presale_wallet)).toNumber(), 200000000 * 10 ** DECIMALS, "The Presale should hold 200mil");
     });
 
     describe('Initialize crowdsale', async function () {
@@ -94,7 +94,7 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
         await tokenOfferingDeployed.setBlockTimestamp(endTime + duration.days(7));
         await tokenDeployed.setBlockTimestamp(endTime + duration.days(7));
         await tokenOfferingDeployed.checkFinalize();
-        assert.equal((await tokenDeployed.balanceOf(tokenOfferingDeployed.address)).toNumber(), 150000000 * 10 ** DECIMALS, "The Crowdsale should have 150mil");
+        assert.equal((await tokenDeployed.balanceOf(tokenOfferingDeployed.address)).toNumber(), 120000000 * 10 ** DECIMALS, "The Crowdsale should have 120mil");
         await tokenDeployed.unpause();
         await tokenOfferingDeployed.refund();
         assert.equal((await tokenDeployed.balanceOf(tokenOfferingDeployed.address)).toNumber(), 0, "The Crowdsale should have no balance after a refund");
