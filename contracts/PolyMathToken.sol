@@ -2,6 +2,7 @@ pragma solidity ^0.4.13;
 
 import 'zeppelin-solidity/contracts/token/PausableToken.sol';
 import 'zeppelin-solidity/contracts/token/BurnableToken.sol';
+import 'zeppelin-solidity/contracts/token/ERC20Basic.sol';
 import './PolyMathTokenOffering.sol';
 
 contract PolyMathToken is PausableToken, BurnableToken {
