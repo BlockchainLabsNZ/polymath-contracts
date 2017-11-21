@@ -1,6 +1,6 @@
 'use strict';
 var TokenOffering = artifacts.require('./helpers/PolyMathTokenOfferingMock.sol');
-var POLYToken = artifacts.require('PolyMathToken.sol');
+var POLYToken = artifacts.require('./helpers/PolyMathTokenMock.sol');
 
 import { latestTime, duration } from './helpers/latestTime';
 const BigNumber = require("bignumber.js");
@@ -37,7 +37,7 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
 
   it('Tokens should not be able to be sent to the null address from the token contract', async function () {
     tokenDeployed = await POLYToken.new(presale_wallet);
-    await assertFail(async () => { await tokenDeployed.issueTokens(0x0, tokenDeployed.address) });
+    await assertFail(async () => { await tokenDeployed.transfer(0x0, tokenDeployed.address) });
   });
 
   describe('Deploy Contracts', async function () {
@@ -78,10 +78,24 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
         await assertFail(async () => { await tokenOfferingDeployed.refund() });
       });
 
-      it('Unsold tokens should be refundable after the crowdsale is finished', async function () {
+      it('Tokens should be locked until 7 days after crowdsale ends', async function () {
         await tokenOfferingDeployed.setBlockTimestamp(endTime + 1);
         await tokenOfferingDeployed.checkFinalize();
+        await assertFail(async () => { await tokenOfferingDeployed.refund() });
+        await assertFail(async () => { await tokenDeployed.unpause() });
+        await assertFail(async () => { await tokenOfferingDeployed.refund() });
+        await tokenDeployed.setBlockTimestamp(endTime + duration.days(7));
+        await tokenDeployed.unpause();
+        await tokenOfferingDeployed.refund();
+        assert.equal((await tokenDeployed.balanceOf(tokenOfferingDeployed.address)).toNumber(), 0, "The Crowdsale should have no balance after a refund");
+      });
+
+      it('Unsold tokens should be refundable after the crowdsale is finished and 7 days pass', async function () {
+        await tokenOfferingDeployed.setBlockTimestamp(endTime + duration.days(7));
+        await tokenDeployed.setBlockTimestamp(endTime + duration.days(7));
+        await tokenOfferingDeployed.checkFinalize();
         assert.equal((await tokenDeployed.balanceOf(tokenOfferingDeployed.address)).toNumber(), 150000000 * 10 ** DECIMALS, "The Crowdsale should have 150mil");
+        await tokenDeployed.unpause();
         await tokenOfferingDeployed.refund();
         assert.equal((await tokenDeployed.balanceOf(tokenOfferingDeployed.address)).toNumber(), 0, "The Crowdsale should have no balance after a refund");
       });

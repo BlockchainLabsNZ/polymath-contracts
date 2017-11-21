@@ -2,6 +2,7 @@ pragma solidity ^0.4.13;
 
 import 'zeppelin-solidity/contracts/token/PausableToken.sol';
 import 'zeppelin-solidity/contracts/token/BurnableToken.sol';
+import './PolyMathTokenOffering.sol';
 
 contract PolyMathToken is PausableToken, BurnableToken {
 
@@ -22,10 +23,14 @@ contract PolyMathToken is PausableToken, BurnableToken {
   uint256 public constant ADVISOR_SUPPLY = 25000000 * token_factor;
   uint256 public constant RESERVE_SUPPLY = 500000000 * token_factor;
 
-  bool private crowdsaleInitialized = false;
+  address private crowdsale;
+
+  function isCrowdsaleAddressSet() public constant returns (bool) {
+    return (address(crowdsale) != address(0));
+  }
 
   modifier crowdsaleNotInitialized() {
-    require(crowdsaleInitialized == false);
+    require(!isCrowdsaleAddressSet());
     _;
   }
 
@@ -41,17 +46,23 @@ contract PolyMathToken is PausableToken, BurnableToken {
   }
 
   function initializeCrowdsale(address _crowdsale) onlyOwner crowdsaleNotInitialized {
-    crowdsaleInitialized = true;
     transfer(_crowdsale, PUBLICSALE_SUPPLY);
+    crowdsale = _crowdsale;
     pause();
     transferOwnership(_crowdsale);
   }
 
-  function issueTokens(address _to, uint256 _value) onlyOwner returns (bool) {
-    balances[owner] = balances[owner].sub(_value);
-    balances[_to] = balances[_to].add(_value);
-    Transfer(owner, _to, _value);
-    return true;
+  function getBlockTimestamp() internal constant returns (uint256) {
+    return block.timestamp;
+  }
+
+  // Override - lifecycle/Pausable.sol
+  function unpause() public {
+    if (PolyMathTokenOffering(crowdsale).hasEnded()) {
+      // Tokens should be locked until 7 days after the crowdsale
+      require(getBlockTimestamp() >= (PolyMathTokenOffering(crowdsale).endTime() + 7 days));
+    }
+    super.unpause();
   }
 
   // Don't accept calls to the contract address; must call a method.

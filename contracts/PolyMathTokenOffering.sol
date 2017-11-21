@@ -143,6 +143,7 @@ contract PolyMathTokenOffering is Ownable {
     uint256 weiToReturn = msg.value.sub(weiAmount);
     uint256 tokens = ethToTokens(weiAmount);
 
+    token.unpause();
     weiRaised = weiRaised.add(weiAmount);
 
     forwardFunds(weiAmount);
@@ -153,7 +154,8 @@ contract PolyMathTokenOffering is Ownable {
     }
     // send tokens to purchaser
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
-    token.issueTokens(beneficiary, tokens);
+    token.transfer(beneficiary, tokens);
+    token.pause();
     TokenRedeem(beneficiary, tokens);
     checkFinalize();
   }
@@ -182,9 +184,12 @@ contract PolyMathTokenOffering is Ownable {
 
   // @return true if crowdsale event has ended or cap reached
   function hasEnded() public constant returns (bool) {
+    if (isFinalized) {
+      return true;
+    }
     bool capReached = weiRaised >= cap;
     bool passedEndTime = getBlockTimestamp() > endTime;
-    return isFinalized || passedEndTime || capReached;
+    return passedEndTime || capReached;
   }
 
   function getBlockTimestamp() internal constant returns (uint256) {
@@ -201,14 +206,13 @@ contract PolyMathTokenOffering is Ownable {
     require(!isFinalized);
     Finalized();
     isFinalized = true;
-    token.unpause();
     token.transferOwnership(owner);
   }
 
   // Allows the owner to take back the tokens that are assigned to the sale contract.
   event TokensRefund(uint256 _amount);
   function refund() external onlyOwner returns (bool) {
-      require(!hasEnded());
+      require(hasEnded());
       uint256 tokens = token.balanceOf(address(this));
 
       if (tokens == 0) {

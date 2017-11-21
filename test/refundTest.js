@@ -1,6 +1,6 @@
 'use strict';
 var TokenOffering = artifacts.require('./helpers/PolyMathTokenOfferingMock.sol');
-var POLYToken = artifacts.require('PolyMathToken.sol');
+var POLYToken = artifacts.require('./helpers/PolyMathTokenMock.sol');
 const assertFail = require("./helpers/assertFail");
 
 import { latestTime, duration } from './helpers/latestTime';
