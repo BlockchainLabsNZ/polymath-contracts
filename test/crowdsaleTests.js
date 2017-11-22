@@ -2,11 +2,12 @@
 var TokenOffering = artifacts.require('./helpers/PolyMathTokenOfferingMock.sol');
 var POLYToken = artifacts.require('PolyMathToken.sol');
 
+const assertFail = require("./helpers/assertFail");
 import { latestTime, duration } from './helpers/latestTime';
 
 const DECIMALS = 18;
 
-contract('TokenOffering', async function ([miner, owner, investor, wallet,  presale_wallet]) {
+contract('TokenOffering', async function ([miner, owner, investor, investor2, wallet,  presale_wallet]) {
   let tokenOfferingDeployed;
   let tokenDeployed;
   let startTime;
@@ -17,7 +18,7 @@ contract('TokenOffering', async function ([miner, owner, investor, wallet,  pres
     const cap = web3.toWei(15000, 'ether');
     tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, cap, wallet);
     await tokenOfferingDeployed.setBlockTimestamp(startTime + duration.days(1));
-    await tokenDeployed.setOwner(tokenOfferingDeployed.address);
+    await tokenDeployed.initializeCrowdsale(tokenOfferingDeployed.address);
   });
 
   it('should not be finalized', async function () {
@@ -134,5 +135,56 @@ contract('TokenOffering', async function ([miner, owner, investor, wallet,  pres
       assert.equal(balance.toNumber(), 1000 * 10 ** DECIMALS, 'balanceOf is 1000 for investor who just bought tokens');
     });
 
+    it('tokens cannot be purchased after the crowdsale is finalized', async function () {
+      await tokenOfferingDeployed.whitelistAddresses([investor], true);
+      await tokenOfferingDeployed.emergencyFinalize();
+      const value = web3.toWei(1, 'ether');
+      await assertFail(async () => {
+        await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
+      });
+    });
+
+    it('cannot purchase tokens for the null address', async function () {
+      // No whitelist for purchaser, or beneficiary (0x0)
+      await assertFail(async () => {
+        await tokenOfferingDeployed.buyTokens(0x0, { from: investor, value: value });
+      });
+      // Whitelist for purchaser
+      await tokenOfferingDeployed.whitelistAddresses([investor], true);
+      await assertFail(async () => {
+        await tokenOfferingDeployed.buyTokens(0x0, { from: investor, value: value });
+      });
+      // Whitelist for purchaser and beneficiary (0x0)
+      // Should still fail even if someone whitelists the null address
+      await tokenOfferingDeployed.whitelistAddresses([0x0], true);
+      await assertFail(async () => {
+        await tokenOfferingDeployed.buyTokens(0x0, { from: investor, value: value });
+      });
+    });
+
+    it('cannot purchase tokens if the beneficiary is not whitelisted, even if you are', async function () {
+      const value = web3.toWei(1, 'ether');
+      await tokenOfferingDeployed.whitelistAddresses([investor], true);
+      await assertFail(async () => {
+        await tokenOfferingDeployed.buyTokens(investor2, { from: investor, value: value });
+      });
+      // Should work once the beneficiary has been whitelisted
+      await tokenOfferingDeployed.whitelistAddresses([investor2], true);
+      await tokenOfferingDeployed.buyTokens(investor2, { from: investor, value: value });
+      let balance = await tokenDeployed.balanceOf(investor2);
+      assert.equal(balance.toNumber(), 1200 * 10 ** DECIMALS, 'balanceOf is 1200 for investor who just bought tokens');
+    });
+
+    it('cannot purchase tokens if the beneficiary is not whitelisted', async function () {
+      const value = web3.toWei(1, 'ether');
+      await assertFail(async () => {
+        await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
+      });
+      // Should work once the beneficiary has been whitelisted
+      await tokenOfferingDeployed.whitelistAddresses([investor], true);
+      await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
+      let balance = await tokenDeployed.balanceOf(investor);
+      assert.equal(balance.toNumber(), 1200 * 10 ** DECIMALS, 'balanceOf is 1200 for investor who just bought tokens');
+    });
   })
 });

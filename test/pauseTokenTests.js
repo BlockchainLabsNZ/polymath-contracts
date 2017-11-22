@@ -1,7 +1,7 @@
 'use strict';
 
 let TokenOffering = artifacts.require('./helpers/PolyMathTokenOfferingMock.sol');
-let POLYToken = artifacts.require('PolyMathToken.sol');
+let POLYToken = artifacts.require('./helpers/PolyMathTokenMock.sol');
 
 const BigNumber = require("bignumber.js");
 const assertFail = require("./helpers/assertFail");
@@ -28,7 +28,7 @@ contract('polyTokenPause', async function([miner, owner, investor, investor2, wa
     const cap = web3.toWei(1, 'ether');
     tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, cap, wallet);
     await tokenOfferingDeployed.setBlockTimestamp(startTime + 1);
-    await tokenDeployed.setOwner(tokenOfferingDeployed.address);
+    await tokenDeployed.initializeCrowdsale(tokenOfferingDeployed.address);
   });
 
   it('tokens should be paused once they are sold',
@@ -84,6 +84,9 @@ contract('polyTokenPause', async function([miner, owner, investor, investor2, wa
       await tokenOfferingDeployed.sendTransaction({ from: investor, value: value });
       balance = await tokenDeployed.balanceOf(investor);
       assert.equal(balance.toNumber(), 1200 * 10 ** DECIMALS, 'balanceOf is 1200 for investor who just bought tokens');
+      await tokenOfferingDeployed.setBlockTimestamp(endTime + duration.days(7));
+      await tokenDeployed.setBlockTimestamp(endTime + duration.days(7));
+      await tokenDeployed.unpause();
       // Token should be unpaused, can now transfer
       await tokenDeployed.transfer(investor2, 600 * 10 ** DECIMALS, { from: investor });
       balance = await tokenDeployed.balanceOf(investor);
@@ -103,9 +106,11 @@ contract('polyTokenPause', async function([miner, owner, investor, investor2, wa
       assert.equal(balance.toNumber(), 600 * 10 ** DECIMALS, 'balanceOf is 600 for investor who just bought tokens');
       await assertFail(async () => { await tokenDeployed.transfer(investor2, 10, { from: investor }) });
 
-      await tokenOfferingDeployed.setBlockTimestamp(endTime + 1);
+      await tokenOfferingDeployed.setBlockTimestamp(endTime + duration.days(7));
+      await tokenDeployed.setBlockTimestamp(endTime + duration.days(7));
 
       await tokenOfferingDeployed.checkFinalize();
+      await tokenDeployed.unpause();
       let isFinalized = await tokenOfferingDeployed.isFinalized();
       assert.isTrue(isFinalized, "isFinalized should be true");
 
