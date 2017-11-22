@@ -69,6 +69,18 @@ contract('TokenOfferingRefund', async function ([miner, owner, investor, wallet,
       assert.equal(balance.toNumber(), 1200 * 10 ** DECIMALS);
     });
 
+    it('trying to whitelist an address twice doesn\'t change it\'s state', async function () {
+      let investorStatus = await tokenOfferingDeployed.whitelist(investor);
+      assert.isFalse(investorStatus);
+      await tokenOfferingDeployed.whitelistAddresses([investor], true);
+      investorStatus = await tokenOfferingDeployed.whitelist(investor);
+      assert.isTrue(investorStatus);
+
+      await tokenOfferingDeployed.whitelistAddresses([investor], true);
+      investorStatus = await tokenOfferingDeployed.whitelist(investor);
+      assert.isTrue(investorStatus);
+    });
+
     it('refund excess ETH if cap has been exceeded (day 1)', async function () {
       await tokenOfferingDeployed.setBlockTimestamp(startTime + 1);
       await tokenOfferingDeployed.whitelistAddresses([investor], true);

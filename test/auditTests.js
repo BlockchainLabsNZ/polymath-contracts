@@ -30,9 +30,87 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
     });
   });
 
+  it('Cannot deploy token if the presale wallet address is null', async function () {
+    await assertFail(async () => {
+      tokenDeployed = await POLYToken.new(0x0);
+    });
+  });
+
+  it('Cannot deploy crowdsale if the cap is 0', async function () {
+    tokenDeployed = await POLYToken.new(presale_wallet);
+    await assertFail(async () => {
+      tokenOfferingDeployed = await TokenOffering.new(
+        tokenDeployed.address,
+        latestTime() + duration.seconds(17),
+        latestTime() + duration.weeks(3),
+        0,
+        presale_wallet
+      )
+    });
+  });
+
+  it('Cannot deploy crowdsale if the token is null', async function () {
+    await assertFail(async () => {
+      tokenOfferingDeployed = await TokenOffering.new(
+        0x0,
+        latestTime() + duration.seconds(15),
+        latestTime() + duration.weeks(6),
+        12345,
+        presale_wallet
+      )
+    });
+  });
+
+  it('Cannot deploy crowdsale if the token is null', async function () {
+    tokenDeployed = await POLYToken.new(presale_wallet);
+    await assertFail(async () => {
+      tokenOfferingDeployed = await TokenOffering.new(
+        tokenDeployed.address,
+        latestTime() + duration.seconds(19),
+        latestTime() + duration.weeks(2),
+        12345,
+        0x0
+      )
+    });
+  });
+
+  it('Cannot deploy crowdsale if the start time is in the past', async function () {
+    tokenDeployed = await POLYToken.new(presale_wallet);
+    await assertFail(async () => {
+      tokenOfferingDeployed = await TokenOffering.new(
+        tokenDeployed.address,
+        latestTime() - duration.seconds(2),
+        latestTime() + duration.weeks(1),
+        12345,
+        presale_wallet
+      )
+    });
+  });
+
+ it('Cannot deploy crowdsale if the end time is before the start time', async function () {
+    tokenDeployed = await POLYToken.new(presale_wallet);
+    await assertFail(async () => {
+      tokenOfferingDeployed = await TokenOffering.new(
+        tokenDeployed.address,
+        latestTime() + duration.weeks(10),
+        latestTime() + duration.weeks(1),
+        12345,
+        presale_wallet
+      )
+    });
+  });
+
   it('Cap should not be able to exceed balance of crowdsale contract', async function () {
     tokenDeployed = await POLYToken.new(presale_wallet);
-    await assertFail(async () => { await TokenOffering.new(tokenDeployed.address, latestTime() + duration.seconds(20), latestTime() + duration.weeks(1), web3.toWei(150000001, 'ether'), crowdsale_wallet) });
+    await assertFail(async () => {
+      await TokenOffering.new(
+        tokenDeployed.address,
+        latestTime() + duration.seconds(20),
+        latestTime() + duration.weeks(1),
+        web3.toWei(150000001, 'ether'),
+        presale_wallet
+      )
+    });
   });
 
   it('Tokens should not be able to be sent to the null address from the token contract', async function () {
@@ -48,6 +126,12 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
 
       tokenDeployed = await POLYToken.new(presale_wallet);
       tokenOfferingDeployed = await TokenOffering.new(tokenDeployed.address, startTime, endTime, cap, crowdsale_wallet);
+    });
+
+    it('Calling an invalid function on the token triggers the fallback and reverts', async function () {
+      await assertFail(async () => {
+        await tokenDeployed.sendTransaction({ from: investor })
+      });
     });
 
     it('Crowdsale should only be able to be initialized once', async function () {
