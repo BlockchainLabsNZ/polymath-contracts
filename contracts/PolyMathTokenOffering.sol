@@ -158,7 +158,9 @@ contract PolyMathTokenOffering is Ownable {
     token.transfer(beneficiary, tokens);
     token.pause();
     TokenRedeem(beneficiary, tokens);
-    checkFinalize();
+    if (weiRaised == cap) {
+      checkFinalize();
+    }
   }
 
   // send ether to the fund collection wallet
