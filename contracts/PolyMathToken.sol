@@ -1,4 +1,4 @@
-pragma solidity ^0.4.13;
+pragma solidity ^0.4.18;
 
 import 'zeppelin-solidity/contracts/token/PausableToken.sol';
 import 'zeppelin-solidity/contracts/token/BurnableToken.sol';
@@ -35,7 +35,7 @@ contract PolyMathToken is PausableToken, BurnableToken {
     _;
   }
 
-  function PolyMathToken(address _presale_wallet) {
+  function PolyMathToken(address _presale_wallet) public {
     require(_presale_wallet != 0x0);
     require(INITIAL_SUPPLY > 0);
     require((PRESALE_SUPPLY + PUBLICSALE_SUPPLY + FOUNDER_SUPPLY + BDMARKET_SUPPLY + ADVISOR_SUPPLY + RESERVE_SUPPLY) == INITIAL_SUPPLY);
@@ -46,7 +46,7 @@ contract PolyMathToken is PausableToken, BurnableToken {
     Transfer(0x0, _presale_wallet, PRESALE_SUPPLY);
   }
 
-  function initializeCrowdsale(address _crowdsale) onlyOwner crowdsaleNotInitialized {
+  function initializeCrowdsale(address _crowdsale) public onlyOwner crowdsaleNotInitialized {
     transfer(_crowdsale, PUBLICSALE_SUPPLY);
     crowdsale = _crowdsale;
     pause();
@@ -67,7 +67,7 @@ contract PolyMathToken is PausableToken, BurnableToken {
   }
 
   // Don't accept calls to the contract address; must call a method.
-  function () {
+  function () public {
     revert();
   }
 

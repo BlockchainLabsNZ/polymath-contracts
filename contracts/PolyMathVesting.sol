@@ -1,45 +1,99 @@
-pragma solidity ^0.4.13;
+pragma solidity ^0.4.18;
 
-import './PolyMathToken.sol';
+import 'zeppelin-solidity/contracts/token/ERC20Basic.sol';
+import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
-contract PolyMathVesting {
+contract PolyMathVesting is Ownable {
+  using SafeMath for uint256;
 
   // Contract holds ERC20 POLY tokens.
-  // Tokens to be deposited for team and advisors.
-  // Tokens to be deposited for bounties.
-  PolyMathToken token;
+  ERC20Basic token;
 
-  // Date to release tokens.
-  uint64 releaseTime;
+  // Important dates for vesting contract.
+  uint256 public startTime;
+  uint256 public cliffTime;
+  uint256 public releaseTime;
 
-  // Beneficiary mapping similar to approach used in the BAT token sale
-  // https://github.com/brave-intl/basic-attention-token-crowdsale/blob/master/contracts/BATSafe.sol
-  mapping (address => uint256) allocations;
+  // Small caveat 1 month will be considered as 30 days and therefore
+  // 1 year 360 days.
+  uint256 public period;
+  uint256 public numPeriods;
 
-  uint256 vestingAmount = 1000000000000000000;
+  // Mappings on how much is allocated and how much has been collected
+  mapping (address => uint256) public allocations;
+  mapping (address => uint256) public collections;
 
-  function PolyMathVesting(address _token, uint64 _releaseTime, address _vestingAddress) {
-    require(_releaseTime > getBlockTimestamp());
-    token = PolyMathToken(_token);
+  // General allocated and collected variables.
+  uint256 public allocated;
+  uint256 public collected;
+  bool public allocationFinished;
+
+  event TokensWithdrawn(address indexed _holder, uint256 _amount);
+
+  function PolyMathVesting(
+      address _token,
+      uint256 _startTime,
+      uint256 _cliffTime,
+      uint256 _releaseTime,
+      uint256 _period
+  ) public {
+    require(_token != 0x0);
+    require(_startTime > getBlockTimestamp());
+    require(_cliffTime >= _startTime);
+    require(_releaseTime >= _cliffTime);
+    token = ERC20Basic(_token);
+    startTime = _startTime;
+    cliffTime = _cliffTime;
     releaseTime = _releaseTime;
-
-  // Allocated token balances for vesting (18 decimals required)
-    allocations[_vestingAddress] = vestingAmount;
+    period = _period;
+    numPeriods = releaseTime.sub(startTime).div(period);
   }
 
-  function release() {
-    require(getBlockTimestamp() >= releaseTime);
+  function allocateArray(
+      address[] _holders,
+      uint256[] _amounts
+  ) public onlyOwner {
+    require(_holders.length == _amounts.length);
+    for (uint256 i = 0; i < _holders.length; i++) {
+      allocate(_holders[i], _amounts[i]);
+    }
+  }
 
-    uint256 entitled = allocations[msg.sender];
-    allocations[msg.sender] = 0;
+  function allocate(address _holder, uint256 _amount) public onlyOwner {
+    require(!allocationFinished);
+    allocated = allocated.sub(allocations[_holder]).add(_amount);
+    require(allocated <= token.balanceOf(address(this)));
+    allocationFinished = allocated == token.balanceOf(address(this));
+    allocations[_holder] = _amount;
+  }
 
-    uint256 amount = token.balanceOf(this);
-    require(amount > 0);
+  function collect() public {
+    require(getBlockTimestamp() >= cliffTime);
+    uint256 balance = allocations[msg.sender];
+    uint256 total = collections[msg.sender].add(balance);
+
+    uint256 periodsPassed = getBlockTimestamp().sub(startTime).div(period);
+
+    uint256 entitled = total.mul(periodsPassed).div(numPeriods);
+
+    entitled = entitled.sub(collections[msg.sender]);
+
+    if (entitled > balance) {
+      entitled = balance;
+    }
+
+    allocations[msg.sender] = allocations[msg.sender].sub(entitled);
+    collections[msg.sender] = collections[msg.sender].add(entitled);
+    allocated = allocated.sub(entitled);
+    collected = collected.add(entitled);
 
     require(token.transfer(msg.sender, entitled));
+
+    TokensWithdrawn(msg.sender, entitled);
   }
 
-   function getBlockTimestamp() internal constant returns (uint256) {
-     return block.timestamp;
-   }
+  function getBlockTimestamp() internal view returns (uint256) {
+    return block.timestamp;
+  }
 }
