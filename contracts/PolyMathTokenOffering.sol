@@ -2,6 +2,7 @@ pragma solidity ^0.4.13;
 
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+import 'zeppelin-solidity/contracts/token/ERC20Basic.sol';
 import './PolyMathToken.sol';
 
 /**
@@ -143,6 +144,7 @@ contract PolyMathTokenOffering is Ownable {
     uint256 weiToReturn = msg.value.sub(weiAmount);
     uint256 tokens = ethToTokens(weiAmount);
 
+    token.unpause();
     weiRaised = weiRaised.add(weiAmount);
 
     forwardFunds(weiAmount);
@@ -153,9 +155,12 @@ contract PolyMathTokenOffering is Ownable {
     }
     // send tokens to purchaser
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
-    token.issueTokens(beneficiary, tokens);
+    token.transfer(beneficiary, tokens);
+    token.pause();
     TokenRedeem(beneficiary, tokens);
-    checkFinalize();
+    if (weiRaised == cap) {
+      checkFinalize();
+    }
   }
 
   // send ether to the fund collection wallet
@@ -182,6 +187,9 @@ contract PolyMathTokenOffering is Ownable {
 
   // @return true if crowdsale event has ended or cap reached
   function hasEnded() public constant returns (bool) {
+    if (isFinalized) {
+      return true;
+    }
     bool capReached = weiRaised >= cap;
     bool passedEndTime = getBlockTimestamp() > endTime;
     return passedEndTime || capReached;
@@ -201,14 +209,13 @@ contract PolyMathTokenOffering is Ownable {
     require(!isFinalized);
     Finalized();
     isFinalized = true;
-    token.unpause();
     token.transferOwnership(owner);
   }
 
   // Allows the owner to take back the tokens that are assigned to the sale contract.
   event TokensRefund(uint256 _amount);
   function refund() external onlyOwner returns (bool) {
-      require(isFinalized);
+      require(hasEnded());
       uint256 tokens = token.balanceOf(address(this));
 
       if (tokens == 0) {
@@ -221,4 +228,17 @@ contract PolyMathTokenOffering is Ownable {
 
       return true;
    }
+
+  function claimTokens(address _token) public onlyOwner {
+    require(hasEnded());
+    if (_token == 0x0) {
+        owner.transfer(this.balance);
+        return;
+    }
+
+    ERC20Basic refundToken = ERC20Basic(_token);
+    uint256 balance = refundToken.balanceOf(this);
+    refundToken.transfer(owner, balance);
+    TokensRefund(balance);
+  }
 }

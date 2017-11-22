@@ -1,6 +1,6 @@
 'use strict';
 var TokenOffering = artifacts.require('./helpers/PolyMathTokenOfferingMock.sol');
-var POLYToken = artifacts.require('PolyMathToken.sol');
+var POLYToken = artifacts.require('./helpers/PolyMathTokenMock.sol');
 const assertFail = require("./helpers/assertFail");
 
 import { latestTime, duration } from './helpers/latestTime';
@@ -67,6 +67,18 @@ contract('TokenOfferingRefund', async function ([miner, owner, investor, wallet,
 
       balance = await tokenDeployed.balanceOf(investor);
       assert.equal(balance.toNumber(), 1200 * 10 ** DECIMALS);
+    });
+
+    it('trying to whitelist an address twice doesn\'t change it\'s state', async function () {
+      let investorStatus = await tokenOfferingDeployed.whitelist(investor);
+      assert.isFalse(investorStatus);
+      await tokenOfferingDeployed.whitelistAddresses([investor], true);
+      investorStatus = await tokenOfferingDeployed.whitelist(investor);
+      assert.isTrue(investorStatus);
+
+      await tokenOfferingDeployed.whitelistAddresses([investor], true);
+      investorStatus = await tokenOfferingDeployed.whitelist(investor);
+      assert.isTrue(investorStatus);
     });
 
     it('refund excess ETH if cap has been exceeded (day 1)', async function () {
