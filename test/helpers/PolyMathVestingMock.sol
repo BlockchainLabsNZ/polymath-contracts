@@ -17,8 +17,9 @@ contract PolyMathVestingMock is PolyMathVesting {
       address _token,
       uint256 _startTime,
       uint256 _cliffTime,
-      uint256 _releaseTime
-  ) PolyMathVesting(_token, _startTime, _cliffTime, _releaseTime) {
+      uint256 _releaseTime,
+      uint256 _period
+  ) PolyMathVesting(_token, _startTime, _cliffTime, _releaseTime, _period) {
     timeStamp = now;
   }
 }

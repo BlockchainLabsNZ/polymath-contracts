@@ -11,22 +11,23 @@ contract PolyMathVesting is Ownable {
   ERC20Basic token;
 
   // Important dates for vesting contract.
-  uint256 startTime;
-  uint256 cliffTime;
-  uint256 releaseTime;
+  uint256 public startTime;
+  uint256 public cliffTime;
+  uint256 public releaseTime;
 
   // Small caveat 1 month will be considered as 30 days and therefore
   // 1 year 360 days.
-  uint256 constant period = 30 days;
-  uint256 numPeriods;
+  uint256 public period;
+  uint256 public numPeriods;
 
   // Mappings on how much is allocated and how much has been collected
-  mapping (address => uint256) allocations;
-  mapping (address => uint256) collections;
+  mapping (address => uint256) public allocations;
+  mapping (address => uint256) public collections;
 
   // General allocated and collected variables.
-  uint256 allocated;
-  uint256 collected;
+  uint256 public allocated;
+  uint256 public collected;
+  bool public allocationFinished;
 
   event TokensWithdrawn(address indexed _holder, uint256 _amount);
 
@@ -34,7 +35,8 @@ contract PolyMathVesting is Ownable {
       address _token,
       uint256 _startTime,
       uint256 _cliffTime,
-      uint256 _releaseTime
+      uint256 _releaseTime,
+      uint256 _period
   ) public {
     require(_token != 0x0);
     require(_startTime > getBlockTimestamp());
@@ -44,6 +46,7 @@ contract PolyMathVesting is Ownable {
     startTime = _startTime;
     cliffTime = _cliffTime;
     releaseTime = _releaseTime;
+    period = _period;
     numPeriods = releaseTime.sub(startTime).div(period);
   }
 
@@ -58,8 +61,10 @@ contract PolyMathVesting is Ownable {
   }
 
   function allocate(address _holder, uint256 _amount) public onlyOwner {
+    require(!allocationFinished);
     allocated = allocated.sub(allocations[_holder]).add(_amount);
     require(allocated <= token.balanceOf(address(this)));
+    allocationFinished = allocated == token.balanceOf(address(this));
     allocations[_holder] = _amount;
   }
 
