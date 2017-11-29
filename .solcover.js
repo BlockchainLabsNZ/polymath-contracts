@@ -1,4 +1,4 @@
 module.exports = {
-    skipFiles: ['lifecycle/Migrations.sol'],
-    copyNodeModules: true
-}
+  skipFiles: ["lifecycle/Migrations.sol"],
+  copyNodeModules: true
+};

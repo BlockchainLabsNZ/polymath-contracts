@@ -9,6 +9,7 @@ contract PolyMathVesting is Ownable {
 
   // Contract holds ERC20 POLY tokens.
   ERC20Basic token;
+  uint256 vestingAmount;
 
   // Important dates for vesting contract.
   uint256 public startTime;
@@ -36,13 +37,16 @@ contract PolyMathVesting is Ownable {
       uint256 _startTime,
       uint256 _cliffTime,
       uint256 _releaseTime,
-      uint256 _period
+      uint256 _period,
+      uint256 _vestingAmount
   ) public {
     require(_token != 0x0);
     require(_startTime > getBlockTimestamp());
     require(_cliffTime >= _startTime);
     require(_releaseTime >= _cliffTime);
+    require(_vestingAmount > 0);
     token = ERC20Basic(_token);
+    vestingAmount = _vestingAmount;
     startTime = _startTime;
     cliffTime = _cliffTime;
     releaseTime = _releaseTime;
@@ -62,10 +66,20 @@ contract PolyMathVesting is Ownable {
 
   function allocate(address _holder, uint256 _amount) public onlyOwner {
     require(!allocationFinished);
+    require(_holder != 0x0);
     allocated = allocated.sub(allocations[_holder]).add(_amount);
     require(allocated <= token.balanceOf(address(this)));
-    allocationFinished = allocated == token.balanceOf(address(this));
+
+    if (allocated == vestingAmount) {
+      finishAllocation();
+    }
+
     allocations[_holder] = _amount;
+  }
+
+  function finishAllocation() public onlyOwner {
+    vestingAmount = allocated;
+    allocationFinished = true;
   }
 
   function collect() public {
@@ -95,5 +109,24 @@ contract PolyMathVesting is Ownable {
 
   function getBlockTimestamp() internal view returns (uint256) {
     return block.timestamp;
+  }
+
+  event TokensClaimed(address indexed token, uint256 _amount);
+
+  function claimTokens(address _token) public onlyOwner {
+    if (_token == 0x0) {
+      owner.transfer(this.balance);
+      return;
+    }
+
+    ERC20Basic refundToken = ERC20Basic(_token);
+    uint256 balance = refundToken.balanceOf(this);
+
+    if (refundToken == token) {
+      balance = balance.sub(allocated);
+    }
+
+    refundToken.transfer(owner, balance);
+    TokensClaimed(_token, balance);
   }
 }
