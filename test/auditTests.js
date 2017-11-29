@@ -157,6 +157,13 @@ contract('Audit Tests', async function ([deployer, investor, crowdsale_wallet, p
         await tokenOfferingDeployed.whitelistAddresses([investor], true);
       });
 
+      it('Only the owner can unpause token transfers', async function () {
+        await assertFail(async () => { await tokenDeployed.unpause({ from: deployer }) });
+        await assertFail(async () => { await tokenDeployed.unpause({ from: investor }) });
+        await assertFail(async () => { await tokenDeployed.unpause({ from: crowdsale_wallet }) });
+        await assertFail(async () => { await tokenDeployed.unpause({ from: presale_wallet }) });
+      })
+
       it('Tokens should not be able to be refunded before the Crowdsale is finished', async function () {
         await tokenOfferingDeployed.setBlockTimestamp(startTime + 1);
         await assertFail(async () => { await tokenOfferingDeployed.refund() });

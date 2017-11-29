@@ -58,7 +58,7 @@ contract PolyMathToken is PausableToken, BurnableToken {
   }
 
   // Override - lifecycle/Pausable.sol
-  function unpause() public {
+  function unpause() onlyOwner whenPaused public {
     if (PolyMathTokenOffering(crowdsale).hasEnded()) {
       // Tokens should be locked until 7 days after the crowdsale
       require(getBlockTimestamp() >= (PolyMathTokenOffering(crowdsale).endTime() + 7 days));
