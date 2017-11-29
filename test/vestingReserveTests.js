@@ -202,6 +202,11 @@ contract("PolyMathVesting", async function(
         (await tokenDeployed.balanceOf(owner)).toNumber(),
         50000000 * 10 ** 18
       );
+
+      assert.equal(
+        (await tokenDeployed.balanceOf(polyVestingDeployed.address)).toNumber(),
+        400000000 * 10 ** 18
+      );
     });
   });
 });
