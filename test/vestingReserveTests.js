@@ -33,6 +33,7 @@ contract("PolyMathVesting", async function(
         cliffTime,
         releaseTime,
         period,
+        new BigNumber(450000000).mul(10 ** 18),
         { from: owner }
       );
 
@@ -44,6 +45,22 @@ contract("PolyMathVesting", async function(
 
     it("Owner of the vesting contract can allocate tokens to an address", async () => {
       assert.isFalse(await polyVestingDeployed.allocationFinished());
+
+      await assertFail(async () => {
+        await polyVestingDeployed.allocate(
+          reserve,
+          new BigNumber(450000000).mul(10 ** 18)
+        );
+      });
+
+      await assertFail(async () => {
+        await polyVestingDeployed.allocate(
+          "0x0",
+          new BigNumber(450000000).mul(10 ** 18),
+          { from: owner }
+        );
+      });
+
       await polyVestingDeployed.allocate(
         reserve,
         new BigNumber(450000000).mul(10 ** 18),
@@ -145,6 +162,50 @@ contract("PolyMathVesting", async function(
       assert.equal(
         (await tokenDeployed.balanceOf(reserve)).toNumber(),
         450000000 * 10 ** 18
+      );
+    });
+
+    it("Admin can Claim Token excess of tokens", async () => {
+      assert.isFalse(await polyVestingDeployed.allocationFinished());
+      await polyVestingDeployed.allocate(
+        reserve,
+        new BigNumber(400000000).mul(10 ** 18),
+        { from: owner }
+      );
+      assert.equal(
+        (await polyVestingDeployed.allocations(reserve)).toNumber(),
+        400000000 * 10 ** 18
+      );
+      await assertFail(async () => {
+        await polyVestingDeployed.finishAllocation();
+      });
+      await polyVestingDeployed.finishAllocation({ from: owner });
+      assert.isTrue(await polyVestingDeployed.allocationFinished());
+      await assertFail(async () => {
+        await polyVestingDeployed.allocate(
+          notReserve,
+          new BigNumber(50000000).mul(10 ** 18),
+          { from: owner }
+        );
+      });
+
+      await assertFail(async () => {
+        await polyVestingDeployed.claimTokens(tokenDeployed.address);
+      });
+
+      assert.equal((await tokenDeployed.balanceOf(owner)).toNumber(), 0);
+      await polyVestingDeployed.claimTokens(tokenDeployed.address, {
+        from: owner
+      });
+
+      assert.equal(
+        (await tokenDeployed.balanceOf(owner)).toNumber(),
+        50000000 * 10 ** 18
+      );
+
+      assert.equal(
+        (await tokenDeployed.balanceOf(polyVestingDeployed.address)).toNumber(),
+        400000000 * 10 ** 18
       );
     });
   });

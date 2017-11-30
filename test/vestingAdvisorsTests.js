@@ -32,6 +32,7 @@ contract("PolyMathVesting", async function(
         cliffTime,
         releaseTime,
         period,
+        new BigNumber(25000000).mul(10 ** 18),
         { from: owner }
       );
 
@@ -55,6 +56,14 @@ contract("PolyMathVesting", async function(
         await polyVestingDeployed.allocate(
           advisor2,
           new BigNumber(15000000).mul(10 ** 18)
+        );
+      });
+
+      await assertFail(async () => {
+        await polyVestingDeployed.allocate(
+          "0x0",
+          new BigNumber(15000000).mul(10 ** 18),
+          { from: owner }
         );
       });
 
@@ -137,6 +146,58 @@ contract("PolyMathVesting", async function(
       assert.equal(
         (await tokenDeployed.balanceOf(advisor2)).toNumber(),
         15000000 * 10 ** 18
+      );
+    });
+
+    it("Admin can Claim Token excess of tokens", async () => {
+      assert.isFalse(await polyVestingDeployed.allocationFinished());
+
+      await polyVestingDeployed.allocateArray(
+        [advisor1, advisor2],
+        [
+          new BigNumber(10000000).mul(10 ** 18),
+          new BigNumber(10000000).mul(10 ** 18)
+        ],
+        { from: owner }
+      );
+      assert.equal(
+        (await polyVestingDeployed.allocations(advisor1)).toNumber(),
+        10000000 * 10 ** 18
+      );
+      assert.equal(
+        (await polyVestingDeployed.allocations(advisor2)).toNumber(),
+        10000000 * 10 ** 18
+      );
+      await assertFail(async () => {
+        await polyVestingDeployed.finishAllocation();
+      });
+      await polyVestingDeployed.finishAllocation({ from: owner });
+      assert.isTrue(await polyVestingDeployed.allocationFinished());
+      await assertFail(async () => {
+        await polyVestingDeployed.allocate(
+          notAdvisor,
+          new BigNumber(5000000).mul(10 ** 18),
+          { from: owner }
+        );
+      });
+
+      await assertFail(async () => {
+        await polyVestingDeployed.claimTokens(tokenDeployed.address);
+      });
+
+      assert.equal((await tokenDeployed.balanceOf(owner)).toNumber(), 0);
+      await polyVestingDeployed.claimTokens(tokenDeployed.address, {
+        from: owner
+      });
+
+      assert.equal(
+        (await tokenDeployed.balanceOf(owner)).toNumber(),
+        5000000 * 10 ** 18
+      );
+
+      assert.equal(
+        (await tokenDeployed.balanceOf(polyVestingDeployed.address)).toNumber(),
+        20000000 * 10 ** 18
       );
     });
   });
